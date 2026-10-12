@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0b1220" />
+<title>AtletaDeudas — Control de aportes y pagos</title>
+<link rel="manifest" href="manifest.json" />
+<style>
+  :root{
+    --bg:#0b1220; --card:#111c31; --card2:#0f1830; --line:#1e2a45;
+    --azul:#2563eb; --azul2:#1d4ed8; --ok:#10b981; --warn:#f59e0b; --err:#ef4444;
+    --txt:#e6ecff; --muted:#9aa7c7;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-tap-highlight-color:transparent}
+  body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
+  .wrap{max-width:720px;margin:0 auto;padding:16px}
+  h1,h2,h3{margin:0 0 12px}
+  h1{font-size:20px}
+  h2{font-size:17px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+  .card.sub{background:var(--card2)}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .row > *{flex:1 1 140px}
+  label{display:block;font-size:12px;color:var(--muted);margin:8px 0 4px}
+  input,select,button,textarea{font-size:15px;font-family:inherit}
+  input,select,textarea{
+    width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);
+    background:#0a1224;color:var(--txt);outline:none
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--azul)}
+  button{
+    background:var(--azul);color:#fff;border:0;border-radius:10px;padding:11px 14px;
+    font-weight:600;cursor:pointer
+  }
+  button:active{background:var(--azul2)}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--txt)}
+  button.ok{background:var(--ok)}
+  button.warn{background:var(--warn);color:#111}
+  button.err{background:var(--err)}
+  .btn-block{display:block;width:100%}
+  .muted{color:var(--muted);font-size:13px}
+  .msg{margin-top:10px;padding:10px 12px;border-radius:10px;font-size:14px;display:none}
+  .msg.show{display:block}
+  .msg.ok{background:#062e22;color:#8ff0c7;border:1px solid #0d5138}
+  .msg.err{background:#3a0f10;color:#ffb3b3;border:1px solid #6a1415}
+  .msg.info{background:#0c1c3a;color:#b9cdff;border:1px solid #1e3a72}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--muted);font-weight:500}
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px}
+  .badge.ok{background:#0d3a2b;color:#8ff0c7}
+  .badge.err{background:#3a0f10;color:#ffb3b3}
+  .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+  .tabs button{flex:1 1 auto;background:transparent;border:1px solid var(--line);color:var(--txt)}
+  .tabs button.active{background:var(--azul);border-color:var(--azul)}
+  .hidden{display:none !important}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  @media (max-width:480px){ .grid3{grid-template-columns:1fr 1fr} }
+  .center{text-align:center}
+  .mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
+  .small{font-size:12px}
+  .sep{height:1px;background:var(--line);margin:12px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- SPLASH / CARGA -->
+  <div id="view-loading" class="card center">
+    <h1>AtletaDeudas</h1>
+    <p class="muted">Cargando base de datos…</p>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="view-login" class="card hidden">
+    <h1>AtletaDeudas</h1>
+    <p class="muted">Control de aportes y pagos</p>
+    <label>Cédula</label>
+    <input id="login-cedula" inputmode="numeric" autocomplete="username" />
+    <label>Clave</label>
+    <input id="login-clave" type="password" autocomplete="current-password" />
+    <div class="row mt12">
+      <button id="btn-login-atleta">Entrar como atleta</button>
+      <button id="btn-login-admin" class="ghost">Entrar como admin</button>
+    </div>
+    <div id="login-msg" class="msg"></div>
+    <div class="sep"></div>
+    <button id="btn-sync-login" class="ghost btn-block">🔄 Sincronizar ahora</button>
+    <div id="sync-login-msg" class="msg"></div>
+  </div>
+
+  <!-- ATLETA -->
+  <div id="view-atleta" class="hidden">
+    <div class="card">
+      <div class="row" style="align-items:center">
+        <h1 style="flex:1;margin:0">Hola, <span id="atleta-nombre">—</span></h1>
+        <button id="btn-logout-atleta" class="ghost small">Salir</button>
+      </div>
+      <p class="muted">Cédula: <span id="atleta-cedula">—</span></p>
+      <div class="grid2 mt12">
+        <div class="card sub center">
+          <div class="muted small">Deuda actual</div>
+          <div id="atleta-deuda" style="font-size:26px;font-weight:700">—</div>
+        </div>
+        <div class="card sub center">
+          <div class="muted small">Estado</div>
+          <div id="atleta-estado" style="font-size:20px;font-weight:700">—</div>
+        </div>
+      </div>
+      <div class="row mt12">
+        <button id="btn-sync-atleta">🔄 Sincronizar ahora</button>
+        <button id="btn-ver-pagos" class="ghost">Ver mis pagos</button>
+      </div>
+      <div id="sync-atleta-msg" class="msg"></div>
+    </div>
+
+    <div id="atleta-pagos-card" class="card hidden">
+      <h2>Mis pagos</h2>
+      <table>
+        <thead><tr><th>Fecha</th><th>Monto</th><th>Referencia</th></tr></thead>
+        <tbody id="atleta-pagos-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div id="view-admin" class="hidden">
+    <div class="card">
+      <div class="row" style="align-items:center">
+        <h1 style="flex:1;margin:0">Panel admin</h1>
+        <button id="btn-logout-admin" class="ghost small">Salir</button>
+      </div>
+      <div class="tabs" id="admin-tabs">
+        <button data-tab="atletas" class="active">Atletas</button>
+        <button data-tab="pagos">Pagos</button>
+        <button data-tab="cargos">Cargos</button>
+        <button data-tab="config">Config</button>
+      </div>
+    </div>
+
+    <!-- TAB ATLETAS -->
+    <div id="tab-atletas" class="tab">
+      <div class="card">
+        <h2>Agregar / editar atleta</h2>
+        <div class="grid2">
+          <div><label>Cédula</label><input id="a-cedula" inputmode="numeric" /></div>
+          <div><label>Nombre</label><input id="a-nombre" /></div>
+          <div><label>Clave</label><input id="a-clave" /></div>
+          <div><label>Activo</label>
+            <select id="a-activo"><option value="1">Sí</option><option value="0">No</option></select>
+          </div>
+          <div><label>Fecha inicio cobro</label><input id="a-fi" type="date" /></div>
+          <div><label>Deuda inicial</label><input id="a-deuda" type="number" step="0.01" value="0" /></div>
+        </div>
+        <div class="row mt12">
+          <button id="btn-guardar-atleta">Guardar atleta</button>
+          <button id="btn-limpiar-atleta" class="ghost">Limpiar</button>
+        </div>
+        <div id="atleta-form-msg" class="msg"></div>
+      </div>
+
+      <div class="card">
+        <h2>Listado</h2>
+        <div class="row">
+          <input id="buscar-atleta" placeholder="Buscar por cédula o nombre" />
+        </div>
+        <div style="overflow:auto" class="mt12">
+          <table>
+            <thead><tr><th>Cédula</th><th>Nombre</th><th>Deuda</th><th>Activo</th><th></th></tr></thead>
+            <tbody id="atletas-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB PAGOS -->
+    <div id="tab-pagos" class="tab hidden">
+      <div class="card">
+        <h2>Registrar pago</h2>
+        <div class="grid2">
+          <div><label>Cédula</label><input id="p-cedula" inputmode="numeric" /></div>
+          <div><label>Monto</label><input id="p-monto" type="number" step="0.01" /></div>
+          <div><label>Referencia</label><input id="p-ref" /></div>
+          <div><label>Fecha</label><input id="p-fecha" type="date" /></div>
+        </div>
+        <div class="row mt12">
+          <button id="btn-registrar-pago">Registrar pago</button>
+        </div>
+        <div id="pago-msg" class="msg"></div>
+      </div>
+
+      <div class="card">
+        <h2>Carga masiva (CSV)</h2>
+        <p class="muted small">Formato: cedula,monto,referencia,fecha (una por línea)</p>
+        <textarea id="csv-pagos" rows="5" placeholder="12345678,50.00,001,2026-10-07"></textarea>
+        <div class="row mt12">
+          <button id="btn-csv-pagos">Procesar CSV</button>
+        </div>
+        <div id="csv-msg" class="msg"></div>
+      </div>
+
+      <div class="card">
+        <h2>Últimos pagos</h2>
+        <div style="overflow:auto">
+          <table>
+            <thead><tr><th>Fecha</th><th>Cédula</th><th>Monto</th><th>Ref</th></tr></thead>
+            <tbody id="pagos-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB CARGOS -->
+    <div id="tab-cargos" class="tab hidden">
+      <div class="card">
+        <h2>Cargos automáticos (días 15 y 30)</h2>
+        <p class="muted small">Los cargos se aplican por atleta según su <em>fecha_inicio_cobro</em>.</p>
+        <div class="row mt12">
+          <button id="btn-procesar-cargos">Procesar cargos pendientes</button>
+          <button id="btn-ver-cortes" class="ghost">Ver cortes del año</button>
+        </div>
+        <div id="cargos-msg" class="msg"></div>
+        <div id="cortes-lista" class="mt12"></div>
+      </div>
+
+      <div class="card">
+        <h2>Historial de cargos</h2>
+        <div style="overflow:auto">
+          <table>
+            <thead><tr><th>Fecha</th><th>Monto/atleta</th><th>Afectados</th></tr></thead>
+            <tbody id="cargos-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB CONFIG -->
+    <div id="tab-config" class="tab hidden">
+      <div class="card">
+        <h2>Configuración general</h2>
+        <div class="grid2">
+          <div><label>Monto semanal</label><input id="c-monto-semanal" type="number" step="0.01" /></div>
+          <div><label>Monto por período</label><input id="c-monto-periodo" type="number" step="0.01" /></div>
+          <div><label>Moneda</label><input id="c-moneda" /></div>
+          <div><label>Clave admin</label><input id="c-clave-admin" /></div>
+          <div><label>Clave genérica (nuevos)</label><input id="c-clave-generica" /></div>
+        </div>
+        <div class="row mt12">
+          <button id="btn-guardar-config">Guardar configuración</button>
+        </div>
+        <div id="config-msg" class="msg"></div>
+      </div>
+
+      <div class="card">
+        <h2>GitHub (almacén remoto)</h2>
+        <p class="muted small">El token se guarda solo localmente. Usa un token fine-grained con permiso <strong>Contents: Read and write</strong> únicamente en este repositorio.</p>
+        <div class="grid2">
+          <div><label>Usuario GitHub</label><input id="c-gh-user" placeholder="usuario" /></div>
+          <div><label>Repositorio</label><input id="c-gh-repo" placeholder="atletadeudas" /></div>
+          <div><label>Ruta del JSON</label><input id="c-gh-ruta" placeholder="datos/atletas.json" /></div>
+          <div><label>Rama</label><input id="c-gh-rama" placeholder="main" /></div>
+        </div>
+        <label>Token (fine-grained)</label>
+        <input id="c-gh-token" type="password" placeholder="github_pat_..." />
+        <div class="row mt12">
+          <button id="btn-guardar-gh">Guardar GitHub</button>
+          <button id="btn-subir-gh" class="ok">⬆ Subir a GitHub</button>
+          <button id="btn-bajar-gh" class="ghost">🔄 Sincronizar ahora</button>
+        </div>
+        <div id="gh-msg" class="msg"></div>
+      </div>
+
+      <div class="card">
+        <h2>Respaldo y restauración</h2>
+        <div class="row">
+          <button id="btn-respaldar" class="ghost">💾 Descargar respaldo (.sqlite)</button>
+          <button id="btn-restaurar" class="ghost">📥 Restaurar respaldo</button>
+        </div>
+        <input id="file-restaurar" type="file" accept=".sqlite,.db,.sqlite3" class="hidden" />
+        <div id="backup-msg" class="msg"></div>
+      </div>
+
+      <div class="card">
+        <h2>Diagnóstico</h2>
+        <div id="diag" class="muted small"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- sql.js -->
+<script src="https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/sql-wasm.js"></script>
+
+<script>
+/* ============================================================
+   AtletaDeudas — PWA offline-first con GitHub como almacén remoto
+   ============================================================ */
+
+const IDB_NAME   = 'atletadeudas';
+const IDB_STORE  = 'kv';
+const IDB_KEY    = 'sqlite_db';
+const SCHEMA_VER = 2;
+
+let db = null;
+let SQL = null;
+let usuarioActual = null;   // {tipo:'atleta'|'admin', atleta_id?, cedula?, nombre?}
+let GH_RAW = '';            // URL raw construida desde config
+
+/* ---------- Utilidades ---------- */
+const $ = (id)=>document.getElementById(id);
+const hoyISO = ()=> new Date().toISOString().slice(0,10);
+const nowISO = ()=> new Date().toISOString();
+const fmt = (n)=> (Number(n)||0).toFixed(2);
+function showMsg(el, tipo, texto){
+  el.className = 'msg show ' + tipo;
+  el.textContent = texto;
+}
+function hideMsg(el){ el.className='msg'; el.textContent=''; }
+
+/* ---------- IndexedDB helpers ---------- */
+function idbOpen(){
+  return new Promise((res,rej)=>{
+    const r = indexedDB.open(IDB_NAME, 1);
+    r.onupgradeneeded = ()=>{ r.result.createObjectStore(IDB_STORE); };
+    r.onsuccess = ()=>res(r.result);
+    r.onerror   = ()=>rej(r.error);
+  });
+}
+async function idbGet(key){
+  const idb = await idbOpen();
+  return new Promise((res,rej)=>{
+    const tx = idb.transaction(IDB_STORE,'readonly');
+    const rq = tx.objectStore(IDB_STORE).get(key);
+    rq.onsuccess = ()=>res(rq.result);
+    rq.onerror   = ()=>rej(rq.error);
+  });
+}
+async function idbSet(key,val){
+  const idb = await idbOpen();
+  return new Promise((res,rej)=>{
+    const tx = idb.transaction(IDB_STORE,'readwrite');
+    const rq = tx.objectStore(IDB_STORE).put(val,key);
+    rq.onsuccess = ()=>res();
+    rq.onerror   = ()=>rej(rq.error);
+  });
+}
+
+/* ---------- SQL helpers ---------- */
+function exec(sql, params=[]){
+  return db.exec(sql, params);
+}
+function run(sql, params=[]){
+  db.run(sql, params);
+}
+function one(sql, params=[]){
+  const r = db.exec(sql, params);
+  if(!r.length || !r[0].values.length) return null;
+  const cols = r[0].columns;
+  return Object.fromEntries(cols.map((c,i)=>[c, r[0].values[0][i]]));
+}
+function all(sql, params=[]){
+  const r = db.exec(sql, params);
+  if(!r.length) return [];
+  const cols = r[0].columns;
+  return r[0].values.map(v => Object.fromEntries(cols.map((c,i)=>[c, v[i]])));
+}
+function getConfig(clave, def=null){
+  const r = one('SELECT valor FROM config WHERE clave=?', [clave]);
+  return r ? r.valor : def;
+}
+function setConfig(clave, valor){
+  run('INSERT INTO config(clave,valor) VALUES(?,?) ON CONFLICT(clave) DO UPDATE SET valor=excluded.valor',
+      [clave, String(valor)]);
+}
+
+/* ---------- Persistencia de la BD en IndexedDB ---------- */
+async function guardarBDEnIDB(){
+  if(!db) return;
+  const data = db.export();
+  await idbSet(IDB_KEY, data);
+}
+
+/* ---------- Schema ---------- */
+function crearSchema(){
+  db.run(`
+    CREATE TABLE IF NOT EXISTS atletas(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      cedula TEXT UNIQUE,
+      nombre TEXT,
+      clave TEXT,
+      clave_cambiada INTEGER DEFAULT 0,
+      deuda REAL DEFAULT 0,
+      activo INTEGER DEFAULT 1,
+      fecha_inscripcion TEXT,
+      fecha_inicio_cobro TEXT,
+      creado TEXT
+    );
+    CREATE TABLE IF NOT EXISTS pagos(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      atleta_id INTEGER,
+      monto REAL,
+      referencia TEXT,
+      fecha TEXT,
+      registrado TEXT
+    );
+    CREATE TABLE IF NOT EXISTS config(
+      clave TEXT PRIMARY KEY,
+      valor TEXT
+    );
+    CREATE TABLE IF NOT EXISTS cargos(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      fecha TEXT UNIQUE,
+      monto_por_atleta REAL,
+      atletas_afectados INTEGER,
+      registrado TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_pagos_atleta ON pagos(atleta_id);
+    CREATE INDEX IF NOT EXISTS idx_pagos_ref ON pagos(atleta_id, referencia, fecha);
+  `);
+  // Defaults de config
+  const defaults = {
+    monto_semanal:'50',
+    monto_periodo:'200',
+    moneda:'USD',
+    clave_admin:'admin123',
+    clave_generica:'123456',
+    ultimo_cargo:'',
+    schema_version:String(SCHEMA_VER),
+    github_usuario:'',
+    github_repo:'',
+    github_ruta:'datos/atletas.json',
+    github_rama:'main',
+    github_token:''
+  };
+  for(const [k,v] of Object.entries(defaults)){
+    if(getConfig(k)===null) setConfig(k,v);
+  }
+}
+
+/* ---------- Fechas de corte (15 y 30) ---------- */
+function proximoCorte(fechaISO){
+  const d = new Date(fechaISO+'T00:00:00');
+  const y = d.getFullYear(), m = d.getMonth();
+  const day = d.getDate();
+  // candidatos en el mes actual
+  const c15 = new Date(y, m, 15);
+  const c30 = new Date(y, m, 30);
+  if(day < 15) return isoDate(c15);
+  if(day < 30) return isoDate(c30);
+  // mes siguiente
+  const next = new Date(y, m+1, 15);
+  return isoDate(next);
+}
+function isoDate(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dd}`;
+}
+function cortesEntre(desdeISO, hastaISO){
+  // devuelve lista de fechas 15/30 entre dos fechas inclusive
+  const out = [];
+  const desde = new Date(desdeISO+'T00:00:00');
+  const hasta = new Date(hastaISO+'T00:00:00');
+  let y = desde.getFullYear(), m = desde.getMonth();
+  while(true){
+    const c15 = new Date(y, m, 15);
+    const c30 = new Date(y, m, 30);
+    for(const c of [c15,c30]){
+      if(c >= desde && c <= hasta) out.push(isoDate(c));
+    }
+    if(new Date(y, m, 30) > hasta) break;
+    m++; if(m>11){m=0;y++;}
+  }
+  return out;
+}
+
+/* ---------- Cargos automáticos ---------- */
+function procesarCargos(){
+  const montoPeriodo = Number(getConfig('monto_periodo','200'));
+  const hoy = hoyISO();
+  const atletas = all('SELECT * FROM atletas WHERE activo=1 AND fecha_inicio_cobro IS NOT NULL');
+  let creados = 0, afectados = 0;
+
+  for(const a of atletas){
+    const desde = a.fecha_inicio_cobro > getConfig('ultimo_cargo','') && getConfig('ultimo_cargo','')
+      ? a.fecha_inicio_cobro
+      : (getConfig('ultimo_cargo','') || a.fecha_inicio_cobro);
+    // Cortes pendientes hasta hoy
+    const cortes = cortesEntre(a.fecha_inicio_cobro, hoy);
+    for(const c of cortes){
+      const ya = one('SELECT id FROM cargos WHERE fecha=?', [c]);
+      if(ya) continue;
+      // aplicar deuda al atleta
+      run('UPDATE atletas SET deuda = deuda + ? WHERE id=?', [montoPeriodo, a.id]);
+      run('INSERT INTO cargos(fecha,monto_por_atleta,atletas_afectados,registrado) VALUES(?,?,?,?)',
+          [c, montoPeriodo, 1, nowISO()]);
+      creados++; afectados++;
+    }
+  }
+  setConfig('ultimo_cargo', hoy);
+  guardarBDEnIDB();
+  return {creados, afectados};
+}
+
+/* ============================================================
+   GITHUB — subir / sincronizar
+   ============================================================ */
+function construirRawURL(){
+  const u = getConfig('github_usuario','');
+  const r = getConfig('github_repo','');
+  const rama = getConfig('github_rama','main');
+  const ruta = getConfig('github_ruta','datos/atletas.json');
+  if(!u || !r) { GH_RAW=''; return ''; }
+  GH_RAW = `https://raw.githubusercontent.com/${u}/${r}/${rama}/${ruta}`;
+  return GH_RAW;
+}
+
+async function subirAGitHub(){
+  const usuario = getConfig('github_usuario','');
+  const repo    = getConfig('github_repo','');
+  const ruta    = getConfig('github_ruta','datos/atletas.json');
+  const rama    = getConfig('github_rama','main');
+  const token   = getConfig('github_token','');
+  if(!usuario || !repo || !token){
+    return {ok:false, error:'Falta configurar usuario, repo o token de GitHub.'};
+  }
+
+  // Construir JSON público
+  const atletas = all('SELECT cedula, nombre, deuda, activo FROM atletas WHERE activo=1');
+  const pagos = all(`
+    SELECT a.cedula AS cedula, p.monto AS monto, p.referencia AS referencia, p.fecha AS fecha
+    FROM pagos p JOIN atletas a ON a.id = p.atleta_id
+    ORDER BY p.fecha ASC
+  `);
+  const payload = {
+    version: 1,
+    actualizado: nowISO(),
+    atletas: atletas.map(a=>({
+      cedula:String(a.cedula), nombre:a.nombre, deuda:Number(a.deuda)||0, activo:Number(a.activo)
+    })),
+    pagos: pagos.map(p=>({
+      cedula:String(p.cedula), monto:Number(p.monto)||0,
+      referencia:p.referencia!=null?String(p.referencia):'', fecha:p.fecha
+    }))
+  };
+  const jsonStr = JSON.stringify(payload, null, 2);
+  const contentB64 = btoa(unescape(encodeURIComponent(jsonStr)));
+
+  const apiBase = `https://api.github.com/repos/${usuario}/${repo}/contents/${ruta}`;
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+
+  // 1) Obtener SHA actual (si el archivo existe)
+  let sha = null;
+  try{
+    const r = await fetch(`${apiBase}?ref=${encodeURIComponent(rama)}&t=${Date.now()}`, {
+      headers, cache:'no-store'
+    });
+    if(r.status === 200){
+      const j = await r.json();
+      sha = j.sha;
+    } else if(r.status !== 404){
+      const t = await r.text();
+      return {ok:false, error:`GET ${r.status}: ${t.slice(0,180)}`};
+    }
+  }catch(e){
+    return {ok:false, error:'Error de red al consultar SHA: '+e.message};
+  }
+
+  // 2) PUT con el contenido
+  const body = {
+    message: `Actualizar atletas.json (${new Date().toISOString()})`,
+    content: contentB64,
+    branch: rama
+  };
+  if(sha) body.sha = sha;
+
+  try{
+    const r = await fetch(apiBase, {
+      method:'PUT',
+      headers: {...headers, 'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    if(!r.ok){
+      const t = await r.text();
+      return {ok:false, error:`PUT ${r.status}: ${t.slice(0,240)}`};
+    }
+    const j = await r.json();
+    return {ok:true, sha:j.content?.sha, actualizado:payload.actualizado,
+            nAtletas:payload.atletas.length, nPagos:payload.pagos.length};
+  }catch(e){
+    return {ok:false, error:'Error de red al subir: '+e.message};
+  }
+}
+
+async function sincronizarDesdeGitHub(){
+  construirRawURL();
+  if(!GH_RAW) return {ok:false, error:'Falta configurar usuario/repo de GitHub.'};
+
+  let json;
+  try{
+    const r = await fetch(`${GH_RAW}?t=${Date.now()}`, {cache:'no-store'});
+    if(!r.ok){
+      return {ok:false, error:`HTTP ${r.status} al leer JSON público`};
+    }
+    json = await r.json();
+  }catch(e){
+    console.log('[sync] error de red:', e);
+    return {ok:false, error:'Error de red al leer GitHub.'};
+  }
+
+  if(!json || !Array.isArray(json.atletas)) {
+    return {ok:false, error:'JSON inválido (falta arreglo atletas).'};
+  }
+
+  const claveGen = getConfig('clave_generica','123456');
+  const hoy = hoyISO();
+  let nuevos=0, actualizados=0, pagosNuevos=0;
+
+  // UPSERT atletas
+  for(const a of json.atletas){
+    if(!a || a.cedula==null) continue;
+    const ced = String(a.cedula);
+    const existente = one('SELECT id FROM atletas WHERE cedula=?', [ced]);
+    if(existente){
+      run('UPDATE atletas SET nombre=?, deuda=?, activo=? WHERE id=?',
+          [a.nombre||'', Number(a.deuda)||0, Number(a.activo)??1, existente.id]);
+      actualizados++;
+    } else {
+      run(`INSERT INTO atletas(cedula,nombre,clave,clave_cambiada,deuda,activo,fecha_inscripcion,fecha_inicio_cobro,creado)
+           VALUES(?,?,?,?,?,?,?,?,?)`,
+          [ced, a.nombre||'', claveGen, 0, Number(a.deuda)||0, Number(a.activo)??1,
+           hoy, proximoCorte(hoy), nowISO()]);
+      nuevos++;
+    }
+  }
+
+  // INSERT pagos (evitar duplicados por atleta_id + referencia + fecha)
+  if(Array.isArray(json.pagos)){
+    for(const p of json.pagos){
+      if(!p || p.cedula==null) continue;
+      const at = one('SELECT id FROM atletas WHERE cedula=?', [String(p.cedula)]);
+      if(!at) continue;
+      const ref = p.referencia!=null ? String(p.referencia) : '';
+      const fecha = p.fecha || hoy;
+      const dup = one('SELECT id FROM pagos WHERE atleta_id=? AND referencia=? AND fecha=?',
+                      [at.id, ref, fecha]);
+      if(dup) continue;
+      run('INSERT INTO pagos(atleta_id,monto,referencia,fecha,registrado) VALUES(?,?,?,?,?)',
+          [at.id, Number(p.monto)||0, ref, fecha, nowISO()]);
+      pagosNuevos++;
+    }
+  }
+
+  guardarBDEnIDB();
+  return {ok:true, nuevos, actualizados, pagosNuevos, actualizado: json.actualizado||''};
+}
+
+/* ============================================================
+   UI — render
+   ============================================================ */
+function mostrarVista(id){
+  ['view-loading','view-login','view-atleta','view-admin'].forEach(v=>{
+    $(v).classList.toggle('hidden', v!==id);
+  });
+}
+
+function renderAtletas(){
+  const q = ($('buscar-atleta')?.value || '').trim().toLowerCase();
+  let rows = all('SELECT * FROM atletas ORDER BY nombre ASC');
+  if(q){
+    rows = rows.filter(a => String(a.cedula).toLowerCase().includes(q) || String(a.nombre||'').toLowerCase().includes(q));
+  }
+  $('atletas-tbody').innerHTML = rows.map(a=>`
+    <tr>
+      <td>${a.cedula}</td>
+      <td>${a.nombre||''}</td>
+      <td>${fmt(a.deuda)}</td>
+      <td>${a.activo ? '<span class="badge ok">Sí</span>' : '<span class="badge err">No</span>'}</td>
+      <td>
+        <button class="ghost small" data-edit="${a.id}">Editar</button>
+      </td>
+    </tr>
+  `).join('') || `<tr><td colspan="5" class="muted center">Sin atletas</td></tr>`;
+
+  $('atletas-tbody').querySelectorAll('button[data-edit]').forEach(b=>{
+    b.onclick = ()=>{
+      const id = Number(b.dataset.edit);
+      const a = one('SELECT * FROM atletas WHERE id=?', [id]);
+      if(!a) return;
+      $('a-cedula').value = a.cedula||'';
+      $('a-nombre').value = a.nombre||'';
+      $('a-clave').value  = a.clave||'';
+      $('a-activo').value = String(a.activo??1);
+      $('a-fi').value     = a.fecha_inicio_cobro||'';
+      $('a-deuda').value  = a.deuda||0;
+      window.scrollTo({top:0, behavior:'smooth'});
+    };
+  });
+}
+
+function renderPagos(){
+  const rows = all(`
+    SELECT p.fecha, a.cedula, p.monto, p.referencia
+    FROM pagos p JOIN atletas a ON a.id=p.atleta_id
+    ORDER BY p.fecha DESC, p.id DESC LIMIT 100
+  `);
+  $('pagos-tbody').innerHTML = rows.map(p=>`
+    <tr><td>${p.fecha}</td><td>${p.cedula}</td><td>${fmt(p.monto)}</td><td>${p.referencia||''}</td></tr>
+  `).join('') || `<tr><td colspan="4" class="muted center">Sin pagos</td></tr>`;
+}
+
+function renderCargos(){
+  const rows = all('SELECT * FROM cargos ORDER BY fecha DESC LIMIT 100');
+  $('cargos-tbody').innerHTML = rows.map(c=>`
+    <tr><td>${c.fecha}</td><td>${fmt(c.monto_por_atleta)}</td><td>${c.atletas_afectados}</td></tr>
+  `).join('') || `<tr><td colspan="3" class="muted center">Sin cargos</td></tr>`;
+}
+
+function renderConfig(){
+  $('c-monto-semanal').value = getConfig('monto_semanal','');
+  $('c-monto-periodo').value = getConfig('monto_periodo','');
+  $('c-moneda').value = getConfig('moneda','USD');
+  $('c-clave-admin').value = getConfig('clave_admin','');
+  $('c-clave-generica').value = getConfig('clave_generica','');
+  $('c-gh-user').value  = getConfig('github_usuario','');
+  $('c-gh-repo').value  = getConfig('github_repo','');
+  $('c-gh-ruta').value  = getConfig('github_ruta','datos/atletas.json');
+  $('c-gh-rama').value  = getConfig('github_rama','main');
+  $('c-gh-token').value = getConfig('github_token','');
+  construirRawURL();
+  $('diag').innerHTML = `
+    Atletas: ${(one('SELECT COUNT(*) n FROM atletas')||{}).n||0} |
+    Pagos: ${(one('SELECT COUNT(*) n FROM pagos')||{}).n||0} |
+    Cargos: ${(one('SELECT COUNT(*) n FROM cargos')||{}).n||0}<br>
+    Último cargo: ${getConfig('ultimo_cargo','—')||'—'}<br>
+    RAW URL: <span style="word-break:break-all">${GH_RAW||'—'}</span>
+  `;
+}
+
+function renderAdmin(){
+  renderAtletas();
+  renderPagos();
+  renderCargos();
+  renderConfig();
+}
+
+/* ============================================================
+   Acciones UI
+   ============================================================ */
+async function loginAtleta(){
+  const ced = $('login-cedula').value.trim();
+  const cla = $('login-clave').value;
+  const msg = $('login-msg'); hideMsg(msg);
+  if(!ced || !cla){ showMsg(msg,'err','Ingresa cédula y clave.'); return; }
+  const a = one('SELECT * FROM atletas WHERE cedula=?', [ced]);
+  if(!a || a.clave !== cla){ showMsg(msg,'err','Credenciales inválidas.'); return; }
+  usuarioActual = {tipo:'atleta', atleta_id:a.id, cedula:a.cedula, nombre:a.nombre};
+  $('atleta-nombre').textContent = a.nombre||'Atleta';
+  $('atleta-cedula').textContent = a.cedula;
+  $('atleta-deuda').textContent  = `${fmt(a.deuda)} ${getConfig('moneda','USD')}`;
+  $('atleta-estado').textContent = a.activo ? 'Activo' : 'Inactivo';
+  $('atleta-pagos-card').classList.add('hidden');
+  mostrarVista('view-atleta');
+}
+
+async function loginAdmin(){
+  const cla = $('login-clave').value;
+  const msg = $('login-msg'); hideMsg(msg);
+  if(cla !== getConfig('clave_admin','admin123')){
+    showMsg(msg,'err','Clave de admin incorrecta.');
+    return;
+  }
+  usuarioActual = {tipo:'admin'};
+  renderAdmin();
+  mostrarVista('view-admin');
+}
+
+function logout(){ usuarioActual=null; $('login-clave').value=''; mostrarVista('view-login'); }
+
+async function guardarAtleta(){
+  const msg = $('atleta-form-msg'); hideMsg(msg);
+  const ced = $('a-cedula').value.trim();
+  if(!ced){ showMsg(msg,'err','La cédula es obligatoria.'); return; }
+  const nombre = $('a-nombre').value.trim();
+  const clave  = $('a-clave').value || getConfig('clave_generica','123456');
+  const activo = Number($('a-activo').value);
+  const fi     = $('a-fi').value || proximoCorte(hoyISO());
+  const deuda  = Number($('a-deuda').value)||0;
+
+  const existente = one('SELECT id FROM atletas WHERE cedula=?', [ced]);
+  if(existente){
+    run(`UPDATE atletas SET nombre=?, clave=?, activo=?, fecha_inicio_cobro=?, deuda=? WHERE id=?`,
+        [nombre, clave, activo, fi, deuda, existente.id]);
+    showMsg(msg,'ok','Atleta actualizado.');
+  } else {
+    run(`INSERT INTO atletas(cedula,nombre,clave,clave_cambiada,deuda,activo,fecha_inscripcion,fecha_inicio_cobro,creado)
+         VALUES(?,?,?,?,?,?,?,?,?)`,
+        [ced, nombre, clave, 0, deuda, activo, hoyISO(), fi, nowISO()]);
+    showMsg(msg,'ok','Atleta creado. (Sugerencia: sube a GitHub para publicar.)');
+    setTimeout(()=>{
+      if(confirm('¿Subir ahora los datos a GitHub?')) subirYMostrar();
+    }, 400);
+  }
+  await guardarBDEnIDB();
+  renderAdmin();
+}
+
+async function registrarPago(){
+  const msg = $('pago-msg'); hideMsg(msg);
+  const ced = $('p-cedula').value.trim();
+  const monto = Number($('p-monto').value);
+  const ref = $('p-ref').value.trim();
+  const fecha = $('p-fecha').value || hoyISO();
+  if(!ced || !monto){ showMsg(msg,'err','Cédula y monto son obligatorios.'); return; }
+  const a = one('SELECT * FROM atletas WHERE cedula=?', [ced]);
+  if(!a){ showMsg(msg,'err','Atleta no encontrado.'); return; }
+
+  run('INSERT INTO pagos(atleta_id,monto,referencia,fecha,registrado) VALUES(?,?,?,?,?)',
+      [a.id, monto, ref, fecha, nowISO()]);
+  run('UPDATE atletas SET deuda = deuda - ? WHERE id=?', [monto, a.id]);
+  await guardarBDEnIDB();
+  showMsg(msg,'ok',`Pago registrado para ${a.nombre||a.cedula}.`);
+  $('p-monto').value=''; $('p-ref').value='';
+  renderAdmin();
+
+  setTimeout(()=>{
+    if(confirm('¿Subir ahora el cambio a GitHub?')) subirYMostrar();
+  }, 400);
+}
+
+async function procesarCSVPagos(){
+  const msg = $('csv-msg'); hideMsg(msg);
+  const txt = $('csv-pagos').value.trim();
+  if(!txt){ showMsg(msg,'err','Pega al menos una línea.'); return; }
+  const lineas = txt.split(/\r?\n/).filter(Boolean);
+  let ok=0, err=0;
+  for(const l of lineas){
+    const [ced,monto,ref,fecha] = l.split(',').map(s=>(s||'').trim());
+    if(!ced || !monto){ err++; continue; }
+    const a = one('SELECT * FROM atletas WHERE cedula=?', [ced]);
+    if(!a){ err++; continue; }
+    run('INSERT INTO pagos(atleta_id,monto,referencia,fecha,registrado) VALUES(?,?,?,?,?)',
+        [a.id, Number(monto)||0, ref||'', fecha||hoyISO(), nowISO()]);
+    run('UPDATE atletas SET deuda = deuda - ? WHERE id=?', [Number(monto)||0, a.id]);
+    ok++;
+  }
+  await guardarBDEnIDB();
+  showMsg(msg, err? 'info':'ok', `Procesados: ${ok} pagos, ${err} líneas con error.`);
+  $('csv-pagos').value='';
+  renderAdmin();
+}
+
+async function procesarCargosUI(){
+  const msg = $('cargos-msg'); hideMsg(msg);
+  const r = procesarCargos();
+  await guardarBDEnIDB();
+  showMsg(msg,'ok',`Cargos aplicados: ${r.creados}. Atletas afectados: ${r.afectados}.`);
+  renderCargos();
+}
+
+function verCortes(){
+  const anio = new Date().getFullYear();
+  const lista = cortesEntre(`${anio}-01-01`, `${anio}-12-31`);
+  $('cortes-lista').innerHTML = `<div class="muted small">Cortes ${anio}: ${lista.join(', ')}</div>`;
+}
+
+async function guardarConfigUI(){
+  const msg = $('config-msg'); hideMsg(msg);
+  setConfig('monto_semanal', $('c-monto-semanal').value);
+  setConfig('monto_periodo', $('c-monto-periodo').value);
+  setConfig('moneda', $('c-moneda').value);
+  setConfig('clave_admin', $('c-clave-admin').value);
+  setConfig('clave_generica', $('c-clave-generica').value);
+  await guardarBDEnIDB();
+  showMsg(msg,'ok','Configuración guardada.');
+}
+
+async function guardarGitHubUI(){
+  const msg = $('gh-msg'); hideMsg(msg);
+  setConfig('github_usuario', $('c-gh-user').value.trim());
+  setConfig('github_repo', $('c-gh-repo').value.trim());
+  setConfig('github_ruta', $('c-gh-ruta').value.trim() || 'datos/atletas.json');
+  setConfig('github_rama', $('c-gh-rama').value.trim() || 'main');
+  const tk = $('c-gh-token').value.trim();
+  if(tk) setConfig('github_token', tk);
+  await guardarBDEnIDB();
+  construirRawURL();
+  showMsg(msg,'ok','Configuración de GitHub guardada localmente.');
+}
+
+async function subirYMostrar(){
+  const msg = $('gh-msg');
+  if(msg) showMsg(msg,'info','Subiendo a GitHub…');
+  const r = await subirAGitHub();
+  if(r.ok){
+    if(msg) showMsg(msg,'ok',`Subido: ${r.nAtletas} atletas, ${r.nPagos} pagos.`);
+  } else {
+    if(msg) showMsg(msg,'err','Error: '+r.error);
+    console.log('[gh]', r.error);
+  }
+}
+
+async function sincronizarYMostrar(destinoMsg){
+  const msg = $(destinoMsg);
+  if(msg) showMsg(msg,'info','Sincronizando desde GitHub…');
+  const r = await sincronizarDesdeGitHub();
+  if(r.ok){
+    if(msg) showMsg(msg,'ok',`OK. Nuevos: ${r.nuevos}, actualizados: ${r.actualizados}, pagos nuevos: ${r.pagosNuevos}.`);
+    if(usuarioActual?.tipo==='admin') renderAdmin();
+    if(usuarioActual?.tipo==='atleta'){
+      const a = one('SELECT * FROM atletas WHERE id=?', [usuarioActual.atleta_id]);
+      if(a){
+        $('atleta-deuda').textContent = `${fmt(a.deuda)} ${getConfig('moneda','USD')}`;
+        $('atleta-estado').textContent = a.activo ? 'Activo' : 'Inactivo';
+      }
+    }
+  } else {
+    if(msg) showMsg(msg,'err','Error: '+r.error);
+    console.log('[sync]', r.error);
+  }
+}
+
+async function respaldar(){
+  const msg = $('backup-msg'); hideMsg(msg);
+  const data = db.export();
+  const blob = new Blob([data], {type:'application/octet-stream'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `atletadeudas_${hoyISO()}.sqlite`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  showMsg(msg,'ok','Respaldo descargado.');
+}
+
+async function restaurar(ev){
+  const msg = $('backup-msg'); hideMsg(msg);
+  const f = ev.target.files[0]; if(!f) return;
+  const buf = new Uint8Array(await f.arrayBuffer());
+  db = new SQL.Database(buf);
+  crearSchema();
+  await guardarBDEnIDB();
+  showMsg(msg,'ok','Respaldo restaurado.');
+  renderAdmin();
+}
+
+/* ---------- Binding UI ---------- */
+function bindUI(){
+  $('btn-login-atleta').onclick = loginAtleta;
+  $('btn-login-admin').onclick  = loginAdmin;
+  $('btn-sync-login').onclick   = ()=>sincronizarYMostrar('sync-login-msg');
+
+  $('btn-logout-atleta').onclick = logout;
+  $('btn-logout-admin').onclick  = logout;
+
+  $('btn-sync-atleta').onclick = ()=>sincronizarYMostrar('sync-atleta-msg');
+  $('btn-ver-pagos').onclick = ()=>{
+    if(!usuarioActual || usuarioActual.tipo!=='atleta') return;
+    const rows = all('SELECT * FROM pagos WHERE atleta_id=? ORDER BY fecha DESC', [usuarioActual.atleta_id]);
+    $('atleta-pagos-tbody').innerHTML = rows.map(p=>`
+      <tr><td>${p.fecha}</td><td>${fmt(p.monto)}</td><td>${p.referencia||''}</td></tr>
+    `).join('') || `<tr><td colspan="3" class="muted center">Sin pagos</td></tr>`;
+    $('atleta-pagos-card').classList.toggle('hidden');
+  };
+
+  // tabs admin
+  document.querySelectorAll('#admin-tabs button').forEach(b=>{
+    b.onclick = ()=>{
+      document.querySelectorAll('#admin-tabs button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      ['atletas','pagos','cargos','config'].forEach(t=>{
+        $('tab-'+t).classList.toggle('hidden', t!==b.dataset.tab);
+      });
+      if(b.dataset.tab==='config') renderConfig();
+    };
+  });
+
+  $('btn-guardar-atleta').onclick = guardarAtleta;
+  $('btn-limpiar-atleta').onclick = ()=>{
+    ['a-cedula','a-nombre','a-clave','a-fi'].forEach(id=>$(id).value='');
+    $('a-activo').value='1'; $('a-deuda').value='0';
+  };
+  $('buscar-atleta').oninput = renderAtletas;
+
+  $('btn-registrar-pago').onclick = registrarPago;
+  $('btn-csv-pagos').onclick = procesarCSVPagos;
+
+  $('btn-procesar-cargos').onclick = procesarCargosUI;
+  $('btn-ver-cortes').onclick = verCortes;
+
+  $('btn-guardar-config').onclick = guardarConfigUI;
+  $('btn-guardar-gh').onclick = guardarGitHubUI;
+  $('btn-subir-gh').onclick = subirYMostrar;
+  $('btn-bajar-gh').onclick = ()=>sincronizarYMostrar('gh-msg');
+
+  $('btn-respaldar').onclick = respaldar;
+  $('btn-restaurar').onclick = ()=>$('file-restaurar').click();
+  $('file-restaurar').onchange = restaurar;
+}
+
+/* ---------- Init ---------- */
+async function init(){
+  bindUI();
+
+  SQL = await initSqlJs({
+    locateFile: f => `https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/${f}`
+  });
+
+  const saved = await idbGet(IDB_KEY);
+  if(saved && saved.byteLength){
+    db = new SQL.Database(new Uint8Array(saved));
+  } else {
+    db = new SQL.Database();
+  }
+  crearSchema();
+  await guardarBDEnIDB();
+
+  // Intentar sync silenciosa al arrancar
+  sincronizarDesdeGitHub().then(r=>{
+    if(r.ok) console.log('[init] sync OK', r);
+    else console.log('[init] sync falló:', r.error);
+    renderAdmin();
+  }).catch(e=>console.log('[init] sync excepción', e));
+
+  mostrarVista('view-login');
+  construirRawURL();
+
+  // Registrar SW
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').catch(e=>console.log('SW err', e));
+  }
+}
+
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible'){
+    sincronizarDesdeGitHub().catch(e=>console.log(e));
+  }
+});
+
+init().catch(e=>{
+  console.error(e);
+  $('view-loading').innerHTML = `<h1>Error</h1><p class="muted">${e.message}</p>`;
+});
+</script>
+</body>
+</html>
