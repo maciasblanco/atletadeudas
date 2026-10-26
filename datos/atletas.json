@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-10-30T00:00:00Z",
+  "actualizado": "2026-10-26T19:00:37.721Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -564,5 +564,51 @@
       }
     }
   ],
-  "pagos": []
+  "pagos": [
+    {
+      "cedula": "34064965",
+      "fecha": "2026-10-16",
+      "fecha_quincena": "2026-10-16",
+      "numero_quincena": 1,
+      "monto": 2,
+      "moneda": "USD",
+      "monto_bs": 0,
+      "tasa": 0,
+      "metodo_pago": "Efectivo",
+      "referencia": "",
+      "banco_origen": "",
+      "telefono_origen": "",
+      "estado": "pagado"
+    },
+    {
+      "cedula": "34671276",
+      "fecha": "2026-10-26",
+      "fecha_quincena": "2026-10-23",
+      "numero_quincena": 3,
+      "monto": 15,
+      "moneda": "USD",
+      "monto_bs": 0,
+      "tasa": 36.5,
+      "metodo_pago": "Efectivo",
+      "referencia": "",
+      "banco_origen": "",
+      "telefono_origen": "",
+      "estado": "pagado"
+    },
+    {
+      "cedula": "34671276",
+      "fecha": "2026-10-26",
+      "fecha_quincena": "2026-10-23",
+      "numero_quincena": 3,
+      "monto": 88730.2,
+      "moneda": "USD",
+      "monto_bs": 0,
+      "tasa": 887.302,
+      "metodo_pago": "Efectivo",
+      "referencia": "efecttas",
+      "banco_origen": "",
+      "telefono_origen": "",
+      "estado": "pagado"
+    }
+  ]
 }
