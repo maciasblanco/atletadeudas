@@ -54,6 +54,9 @@
   .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px}
   .badge.ok{background:#0d3a2b;color:#8ff0c7}
   .badge.err{background:#3a0f10;color:#ffb3b3}
+  .badge.warn{background:#4a2f07;color:#ffd48a;border:1px solid #7a4f0a}
+  .fila-no-practica{background:#2a0a0a !important}
+  .fila-no-practica td{border-bottom-color:#5a1010}
   .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
   .tabs button{flex:1 1 auto;background:transparent;border:1px solid var(--line);color:var(--txt)}
   .tabs button.active{background:var(--azul);border-color:var(--azul)}
@@ -68,6 +71,14 @@
   fieldset{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:14px}
   legend{padding:0 6px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
   .tabla-scroll{overflow-x:auto}
+  .aviso-pendiente{
+    margin-top:10px;padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.5;
+    background:#422006;border:1px solid #854d0e;color:#fbbf24;
+  }
+  .acciones button{padding:6px 10px;font-size:12px;margin:2px 2px 0 0;border-radius:8px}
+  #pago-resumen-atleta ul{margin:4px 0 0 18px;padding:0}
+  #pago-resumen-atleta li{margin:2px 0}
+  .tasa-bcv-info{font-size:11px;color:var(--muted);margin-top:4px}
 </style>
 </head>
 <body>
@@ -107,8 +118,10 @@
       <p class="muted">Cédula: <span id="atleta-cedula">—</span></p>
       <div class="grid2 mt12">
         <div class="card sub center">
-          <div class="muted small">Deuda actual</div>
-          <div id="atleta-deuda" style="font-size:26px;font-weight:700">—</div>
+          <div class="muted small">Total adeudado</div>
+          <div id="atleta-deuda-bs" style="font-size:26px;font-weight:700;color:#fbbf24">—</div>
+          <div id="atleta-deuda-usd" class="muted small" style="margin-top:2px">—</div>
+          <div id="atleta-deuda-detalle" class="muted small" style="margin-top:4px">—</div>
         </div>
         <div class="card sub center">
           <div class="muted small">Estado</div>
@@ -122,12 +135,44 @@
       <div id="sync-atleta-msg" class="msg"></div>
     </div>
 
+    <!-- BLOQUE 6.6: Reportar aporte -->
+    <div id="card-reportar-aporte" class="card">
+      <h2>💸 Reportar mi aporte</h2>
+      <p class="muted small" style="margin:0 0 10px">
+        Tu aporte quedará <strong>pendiente de verificación</strong> por el administrador.
+        La mora no se descuenta hasta que sea aprobado.
+      </p>
+      <div id="ra-resumen" class="card sub" style="margin-bottom:10px;font-size:13px;line-height:1.5;"></div>
+      <div class="grid2">
+        <div>
+          <label>Monto *</label>
+          <input id="ra-monto" type="number" min="0.01" step="0.01" inputmode="decimal" />
+        </div>
+        <div>
+          <label>Método de pago *</label>
+          <select id="ra-metodo">
+            <option value="">— Seleccione —</option>
+          </select>
+        </div>
+      </div>
+      <label>Referencia / Nº comprobante</label>
+      <input id="ra-referencia" type="text" maxlength="60" placeholder="Ej: 0001234567" />
+      <label>Nota (opcional)</label>
+      <input id="ra-nota" type="text" maxlength="120" placeholder="Ej: pago quincena 3" />
+      <button id="btn-reportar-aporte" class="btn-block mt12" style="margin-top:14px">
+        📤 Enviar aporte para verificación
+      </button>
+      <div id="ra-msg" class="msg"></div>
+    </div>
+
     <div id="atleta-pagos-card" class="card hidden">
       <h2>Mis pagos</h2>
-      <table>
-        <thead><tr><th>Fecha</th><th>Monto</th><th>Referencia</th></tr></thead>
-        <tbody id="atleta-pagos-tbody"></tbody>
-      </table>
+      <div class="tabla-scroll">
+        <table>
+          <thead><tr><th>Fecha</th><th>Monto</th><th>Referencia</th><th>Quincena</th><th>Estado</th></tr></thead>
+          <tbody id="atleta-pagos-tbody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -205,7 +250,7 @@
           <table id="tabla-atletas">
             <thead><tr>
               <th>Cédula</th><th>Nombre completo</th><th>Representante</th>
-              <th>Categoría</th><th>Deuda</th><th>Acciones</th>
+              <th>Categoría</th><th>Deuda (Bs)</th><th>Mora</th><th>Acciones</th>
             </tr></thead>
             <tbody id="atletas-tbody"></tbody>
           </table>
@@ -215,9 +260,21 @@
 
     <!-- TAB PAGOS -->
     <div id="tab-pagos" class="tab hidden">
+
+      <div class="card">
+        <h2>⏳ Pagos pendientes por verificar</h2>
+        <div id="lista-pagos-pendientes">
+          <p class="muted small">Cargando…</p>
+        </div>
+      </div>
+
       <div class="card">
         <h2>Registrar pago</h2>
         <form id="form-pago" autocomplete="off">
+          <div id="pago-resumen-atleta" class="card sub" style="margin-bottom:12px;display:none;">
+            <div class="muted small" style="margin-bottom:6px;">Resumen del atleta</div>
+            <div id="pago-resumen-texto" style="font-size:14px;line-height:1.5;"></div>
+          </div>
           <div class="grid2">
             <div><label>Atleta *</label>
               <select id="pago_atleta" required>
@@ -245,6 +302,7 @@
               </select>
             </div>
           </div>
+          <div id="pago-cobertura" class="aviso-pendiente" style="display:none;"></div>
           <label>Observación</label>
           <textarea id="observacion" rows="2"></textarea>
           <div class="row mt12">
@@ -274,8 +332,9 @@
       <div class="card">
         <h2>Configuración general</h2>
         <div class="grid2">
-          <div><label>Monto semanal</label><input id="c-monto-semanal" type="number" step="0.01" /></div>
-          <div><label>Monto por período</label><input id="c-monto-periodo" type="number" step="0.01" /></div>
+          <div><label>Monto semanal (USD)</label><input id="c-monto-semanal" type="number" step="0.01" /></div>
+          <div><label>Monto por período (USD)</label><input id="c-monto-periodo" type="number" step="0.01" /></div>
+          <div><label>Monto por quincena (USD)</label><input id="c-monto-quincena" type="number" step="0.01" /></div>
           <div><label>Moneda</label><input id="c-moneda" /></div>
           <div><label>Tasa USD (Bs)</label><input id="c-tasa-dolar" type="number" step="0.0001" /></div>
           <div><label>Clave admin</label><input id="c-clave-admin" /></div>
@@ -283,7 +342,9 @@
         </div>
         <div class="row mt12">
           <button id="btn-guardar-config">Guardar configuración</button>
+          <button id="btn-tasa-bcv" class="ghost">🔄 Actualizar tasa BCV</button>
         </div>
+        <div id="tasa-bcv-info" class="tasa-bcv-info"></div>
         <div id="config-msg" class="msg"></div>
       </div>
 
@@ -327,7 +388,8 @@
 <script src="https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/sql-wasm.js"></script>
 <script>
 /* ============================================================
-   AtletaDeudas — PWA offline-first (esquema v2, con fixes)
+   AtletaDeudas — PWA offline-first
+   Esquema v2 + mora + Bloque 6.6 + división de quincenas
    ============================================================ */
 
 const IDB_NAME  = 'atletadeudas';
@@ -339,6 +401,7 @@ let db = null;
 let SQL = null;
 let usuarioActual = null;
 let GH_RAW = '';
+let tasaBCVFecha = '';
 
 /* ---------- Utilidades ---------- */
 const $ = (id)=>document.getElementById(id);
@@ -346,26 +409,19 @@ const hoyISO = ()=> new Date().toISOString().slice(0,10);
 const nowISO = ()=> new Date().toISOString();
 const fmt = (n)=> (Number(n)||0).toFixed(2);
 
-/* Normaliza cédula: trim, sin puntos ni espacios */
 function normalizarCedula(s){
   return String(s||'').trim().replace(/[.\s]/g,'');
 }
-
-/* Suma días a una fecha ISO */
 function addDias(iso, n){
   const d = new Date(iso+'T00:00:00Z');
   d.setUTCDate(d.getUTCDate()+n);
   return d.toISOString().slice(0,10);
 }
-
-/* Diferencia en días entre dos fechas ISO */
 function diasEntre(aISO, bISO){
   const a = new Date(aISO+'T00:00:00Z');
   const b = new Date(bISO+'T00:00:00Z');
   return Math.round((b - a) / 86400000);
 }
-
-/* Calcula el número de quincena para una fecha_quincena según el corte */
 function calcularNumeroQuincena(fechaQ){
   const corte = getConfig('fecha_corte_quincena','2026-10-30');
   const nIni  = Number(getConfig('numero_quincena_inicial','1')) || 1;
@@ -373,8 +429,6 @@ function calcularNumeroQuincena(fechaQ){
   const dif = diasEntre(corte, fechaQ);
   return nIni + Math.floor(dif / 7);
 }
-
-/* Fecha de la quincena actual (última <= hoy) */
 function fechaQuincenaActual(){
   const corte = getConfig('fecha_corte_quincena','2026-10-30');
   const hoy = hoyISO();
@@ -383,9 +437,57 @@ function fechaQuincenaActual(){
   const n = Math.floor(dif / 7);
   return addDias(corte, n*7);
 }
-
 function showMsg(el, tipo, texto){ if(!el) return; el.className='msg show '+tipo; el.textContent=texto; }
 function hideMsg(el){ if(el){ el.className='msg'; el.textContent=''; } }
+
+/* ============================================================
+   TASA BCV AUTOMÁTICA (Crom Studio API - gratis, sin key)
+   ============================================================ */
+async function obtenerTasaBCV(){
+  try{
+    const res = await fetch('https://datos.cromstudio.com.ve/tasa', { cache: 'no-store' });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const tasa = Number(data?.tasas?.USD);
+    if(!tasa || tasa <= 0) throw new Error('Tasa USD inválida en la respuesta');
+    return {
+      ok: true,
+      tasa,
+      fecha: data.fecha_valor || '',
+      actualizado: data.actualizado_el || ''
+    };
+  }catch(e){
+    console.warn('No se pudo obtener tasa BCV:', e.message);
+    return { ok:false, error: e.message };
+  }
+}
+
+async function actualizarTasaBCV(silencioso = false){
+  const msgEl = $('config-msg');
+  if(!silencioso) showMsg(msgEl, 'info', 'Consultando BCV…');
+  const r = await obtenerTasaBCV();
+  if(r.ok){
+    setConfig('tasa_dolar', r.tasa);
+    setConfig('tasa_bcv_fecha', r.fecha);
+    setConfig('tasa_bcv_actualizado', r.actualizado);
+    tasaBCVFecha = r.fecha;
+    const inp = $('c-tasa-dolar');
+    if(inp) inp.value = r.tasa;
+    const t = $('tasa');
+    if(t) t.value = r.tasa;
+    const info = $('tasa-bcv-info');
+    if(info) info.textContent = `BCV: ${fmt(r.tasa)} Bs/$ · Vigencia: ${r.fecha || '—'} · Actualizado: ${r.actualizado ? new Date(r.actualizado).toLocaleString('es-VE') : '—'}`;
+    guardarBDEnIDB();
+    if(!silencioso){
+      showMsg(msgEl, 'ok', `✅ Tasa BCV actualizada: ${fmt(r.tasa)} Bs/$ (${r.fecha})`);
+      refrescarAdmin();
+    }
+    return true;
+  } else {
+    if(!silencioso) showMsg(msgEl, 'err', '❌ No se pudo obtener la tasa BCV: ' + r.error);
+    return false;
+  }
+}
 
 /* ---------- IndexedDB ---------- */
 function idbOpen(){
@@ -444,7 +546,7 @@ async function guardarBDEnIDB(){
 }
 
 /* ============================================================
-   BLOQUE 6.1 — crearSchema() v2 + migración clave
+   crearSchema() v2
    ============================================================ */
 function crearSchema(){
   db.run(`CREATE TABLE IF NOT EXISTS representantes(
@@ -497,7 +599,6 @@ function crearSchema(){
   );`);
   db.run(`CREATE TABLE IF NOT EXISTS config(clave TEXT PRIMARY KEY, valor TEXT);`);
 
-  // Migración: agregar columna 'clave' si la tabla atletas existía sin ella
   try{
     const cols = db.exec("PRAGMA table_info(atletas)");
     const nombres = cols.length ? cols[0].values.map(v=>v[1]) : [];
@@ -506,7 +607,6 @@ function crearSchema(){
     }
   }catch(e){ /* noop */ }
 
-  // Sembrar métodos de pago
   const metodos = [
     ['EFECTIVO','Efectivo'],['PAGO_MOVIL','Pago Móvil'],
     ['TRANSFERENCIA','Transferencia'],['ZELLE','Zelle'],['OTRO','Otro']
@@ -515,11 +615,12 @@ function crearSchema(){
     db.run(`INSERT OR IGNORE INTO metodos_pago(codigo,nombre,activo) VALUES(?,?,1)`, [codigo,nombre]);
   }
 
-  // Defaults de config
   const defaults = {
-    monto_semanal:'50', monto_periodo:'200', moneda:'USD',
+    monto_semanal:'50', monto_periodo:'200', monto_quincena:'50',
+    moneda:'USD',
     clave_admin:'admin123', clave_generica:'123456',
     tasa_dolar:'36.50',
+    tasa_bcv_fecha:'', tasa_bcv_actualizado:'',
     fecha_corte_quincena:'2026-10-30',
     numero_quincena_inicial:'1',
     schema_version:String(SCHEMA_VER),
@@ -530,11 +631,124 @@ function crearSchema(){
     if(getConfig(k)===null) setConfig(k,v);
   }
 
-  // Índice único anti-duplicados
   db.run(`CREATE UNIQUE INDEX IF NOT EXISTS uq_pago_ref
           ON pagos(atleta_id, metodo_pago_id, IFNULL(referencia,''), fecha)`);
 
   console.log('✅ Esquema v2 listo (schema_version=4)');
+}
+
+/* ============================================================
+   Mora y deuda
+   ============================================================ */
+function quincenaActualNumero(){
+  const corte = getConfig('fecha_corte_quincena','2026-10-30');
+  const hoy = hoyISO();
+  if(hoy < corte) return 0;
+  const dif = diasEntre(corte, hoy);
+  return 1 + Math.floor(dif / 7);
+}
+
+function calcularMoraAtleta(atletaId){
+  const qActual = quincenaActualNumero();
+  if(qActual <= 0){
+    return { quincena_actual:0, pagadas:0, debidas:0, estado:'sin_inicio' };
+  }
+  const r = one(
+    `SELECT COUNT(DISTINCT numero_quincena) AS n
+       FROM pagos
+      WHERE atleta_id = ?
+        AND estado = 'pagado'
+        AND numero_quincena BETWEEN 1 AND ?`,
+    [atletaId, qActual]
+  );
+  const pagadas = r?.n || 0;
+  const debidas = Math.max(0, qActual - pagadas);
+  let estado = 'ok';
+  if(debidas >= 3) estado = 'no_practica';
+  else if(debidas > 0) estado = 'mora';
+  return { quincena_actual:qActual, pagadas, debidas, estado };
+}
+
+function badgeMoraHTML(m, totalBs){
+  if(m.estado === 'sin_inicio'){
+    return `<span class="badge" style="background:#1e2a45;color:#9aa7c7">Sin iniciar</span>`;
+  }
+  if(m.estado === 'ok'){
+    return `<span class="badge ok">✅ Al día</span>`;
+  }
+  const extra = (totalBs != null && totalBs > 0) ? ` · ${fmt(totalBs)} Bs` : '';
+  if(m.estado === 'mora'){
+    return `<span class="badge warn">⚠️ Mora: ${m.debidas}${extra}</span>`;
+  }
+  return `<span class="badge err">🚫 NO PRACTICA (${m.debidas})${extra}</span>`;
+}
+
+function calcularDeudaAtleta(atletaId){
+  const m = calcularMoraAtleta(atletaId);
+  const montoPeriodo = Number(getConfig('monto_periodo','200')) || 200;
+  const montoSemanal = Number(getConfig('monto_semanal','50')) || 50;
+  const montoQuincenaUSD = Number(getConfig('monto_quincena', montoPeriodo/4 || montoSemanal*2)) || 50;
+  const tasa = Number(getConfig('tasa_dolar','36.50')) || 36.50;
+  const debidas = Math.max(0, m.debidas || 0);
+  const totalUSD = debidas * montoQuincenaUSD;
+  const totalBs  = totalUSD * tasa;
+  return {
+    ...m,
+    monto_quincena_usd: montoQuincenaUSD,
+    tasa,
+    total_usd: totalUSD,
+    total_bs: totalBs
+  };
+}
+
+function estadoQuincenaAtleta(atletaId, numeroQuincena){
+  if(!numeroQuincena) return { tipo:'invalida' };
+
+  const pagada = one(
+    `SELECT id, monto, fecha FROM pagos
+      WHERE atleta_id=? AND estado='pagado' AND numero_quincena=?`,
+    [atletaId, numeroQuincena]
+  );
+  if(pagada) return { tipo:'pagada', pago_id:pagada.id, monto:pagada.monto, fecha:pagada.fecha };
+
+  const pend = one(
+    `SELECT id FROM pagos
+      WHERE atleta_id=? AND estado='pendiente' AND numero_quincena=?`,
+    [atletaId, numeroQuincena]
+  );
+  if(pend) return { tipo:'pendiente', pago_id:pend.id };
+
+  const qActual = quincenaActualNumero();
+  if(numeroQuincena > qActual) return { tipo:'futura' };
+  return { tipo:'debida' };
+}
+
+function resumenDeudaAtleta(atletaId){
+  const d = calcularDeudaAtleta(atletaId);
+  const qActual = quincenaActualNumero();
+  const pagadasNums = new Set(
+    all(`SELECT numero_quincena FROM pagos
+          WHERE atleta_id=? AND estado='pagado'
+            AND numero_quincena BETWEEN 1 AND ?`, [atletaId, qActual])
+      .map(r => Number(r.numero_quincena))
+  );
+  const pendientesNums = new Set(
+    all(`SELECT numero_quincena FROM pagos
+          WHERE atleta_id=? AND estado='pendiente'
+            AND numero_quincena BETWEEN 1 AND ?`, [atletaId, qActual])
+      .map(r => Number(r.numero_quincena))
+  );
+  const debidasNums = [];
+  for(let i=1; i<=qActual; i++){
+    if(!pagadasNums.has(i) && !pendientesNums.has(i)) debidasNums.push(i);
+  }
+  return {
+    ...d,
+    quincena_actual: qActual,
+    pagadas_nums: [...pagadasNums].sort((a,b)=>a-b),
+    pendientes_nums: [...pendientesNums].sort((a,b)=>a-b),
+    debidas_nums: debidasNums
+  };
 }
 
 /* ============================================================
@@ -561,6 +775,13 @@ function cargarAtletasEnSelectPago(){
     rows.map(r=>`<option value="${r.id}">${r.p_apellido||''} ${r.p_nombre||''} (${r.identificacion})</option>`).join('');
 }
 
+function cargarMetodosEnSelectAtleta(){
+  const sel = $('ra-metodo'); if(!sel) return;
+  const rows = all(`SELECT id, nombre FROM metodos_pago WHERE activo=1 ORDER BY nombre`);
+  sel.innerHTML = '<option value="">— Seleccione —</option>' +
+    rows.map(r=>`<option value="${r.id}">${r.nombre}</option>`).join('');
+}
+
 function renderAtletas(){
   const tb = $('atletas-tbody'); if(!tb) return;
   const filtro = ($('buscar-atleta')?.value||'').trim().toLowerCase();
@@ -584,17 +805,21 @@ function renderAtletas(){
     const nombre = [a.p_nombre,a.s_nombre,a.p_apellido,a.s_apellido].filter(Boolean).join(' ');
     const rep = [a.rep_nombre,a.rep_apellido].filter(Boolean).join(' ') +
                 (a.rep_tel ? ` · ${a.rep_tel}` : '');
-    return `<tr>
+    const m = calcularMoraAtleta(a.id);
+    const d = calcularDeudaAtleta(a.id);
+    const filaClase = (m.estado === 'no_practica') ? 'fila-no-practica' : '';
+    return `<tr class="${filaClase}">
       <td>${a.identificacion||''}</td>
       <td>${nombre}</td>
       <td>${rep||'—'}</td>
       <td>${a.categoria||'—'}</td>
-      <td>${fmt(a.deuda)}</td>
+      <td style="color:#fbbf24">${fmt(d.total_bs)} Bs</td>
+      <td>${badgeMoraHTML(m, d.total_bs)}</td>
       <td class="acciones">
         <button data-id="${a.id}" data-acc="edit">✏️</button>
       </td>
     </tr>`;
-  }).join('') || `<tr><td colspan="6" class="muted center">Sin atletas.</td></tr>`;
+  }).join('') || `<tr><td colspan="7" class="muted center">Sin atletas.</td></tr>`;
 
   tb.querySelectorAll('button[data-acc="edit"]').forEach(b=>{
     b.onclick = ()=>editarAtleta(Number(b.dataset.id));
@@ -614,15 +839,185 @@ function renderPagos(){
      LIMIT 100`);
   tb.innerHTML = rows.map(p=>{
     const nombre = `${p.p_apellido||''} ${p.p_nombre||''}`.trim() || p.identificacion;
+    const badgeClase = p.estado==='pagado' ? 'ok' : (p.estado==='pendiente' ? 'warn' : 'err');
     return `<tr>
       <td>${p.fecha||''}</td>
       <td>${nombre}</td>
       <td>${p.fecha_quincena||''}${p.numero_quincena?` (#${p.numero_quincena})`:''}</td>
       <td>${p.metodo||'—'}</td>
       <td>${fmt(p.monto)}</td>
-      <td><span class="badge ${p.estado==='pagado'?'ok':'err'}">${p.estado||''}</span></td>
+      <td><span class="badge ${badgeClase}">${p.estado||''}</span></td>
     </tr>`;
   }).join('') || `<tr><td colspan="6" class="muted center">Sin pagos.</td></tr>`;
+
+  renderPagosPendientes();
+}
+
+function renderPagosPendientes(){
+  const cont = $('lista-pagos-pendientes');
+  if(!cont) return;
+  try{
+    const rows = all(`
+      SELECT p.id, p.monto, p.fecha, p.fecha_quincena, p.referencia, p.numero_quincena,
+             p.observacion,
+             a.identificacion AS atleta_cedula, a.p_nombre, a.p_apellido,
+             m.nombre AS metodo
+        FROM pagos p
+        JOIN atletas a ON a.id = p.atleta_id
+        LEFT JOIN metodos_pago m ON m.id = p.metodo_pago_id
+       WHERE p.estado = 'pendiente'
+       ORDER BY p.fecha DESC, p.id DESC`);
+
+    if(rows.length === 0){
+      cont.innerHTML = `<p class="muted small">No hay pagos pendientes por verificar. ✅</p>`;
+      return;
+    }
+
+    cont.innerHTML = `
+      <div class="tabla-scroll">
+        <table>
+          <thead><tr>
+            <th>Fecha</th><th>Atleta</th><th>Monto</th><th>Método</th>
+            <th>Ref.</th><th>Quincena</th><th>Acciones</th>
+          </tr></thead>
+          <tbody>
+            ${rows.map(p=>{
+              const nombre = `${p.p_apellido||''} ${p.p_nombre||''}`.trim() || p.atleta_cedula;
+              return `<tr>
+                <td>${p.fecha||''}</td>
+                <td>${nombre}<br><span class="muted small">${p.atleta_cedula||''}</span></td>
+                <td style="color:#22c55e;font-weight:600">${fmt(p.monto)}</td>
+                <td>${p.metodo||'—'}</td>
+                <td>${p.referencia||'—'}</td>
+                <td class="center">${p.numero_quincena?('#'+p.numero_quincena):'—'}</td>
+                <td class="acciones">
+                  <button class="ok" data-acc="aprobar" data-id="${p.id}">✅ Aprobar</button>
+                  <button class="err" data-acc="rechazar" data-id="${p.id}">❌ Rechazar</button>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+
+    cont.querySelectorAll('button[data-acc="aprobar"]').forEach(b=>{
+      b.onclick = ()=>aprobarPago(Number(b.dataset.id));
+    });
+    cont.querySelectorAll('button[data-acc="rechazar"]').forEach(b=>{
+      b.onclick = ()=>rechazarPago(Number(b.dataset.id));
+    });
+  }catch(e){
+    console.error('Error renderPagosPendientes:', e);
+    cont.innerHTML = `<p class="msg err show">Error al cargar pendientes: ${e.message}</p>`;
+  }
+}
+
+function renderResumenPagoAdmin(){
+  const cont = $('pago-resumen-atleta');
+  const texto = $('pago-resumen-texto');
+  if(!cont || !texto) return;
+
+  const atletaId = Number($('pago_atleta').value);
+  if(!atletaId){
+    cont.style.display = 'none';
+    const cob = $('pago-cobertura');
+    if(cob) cob.style.display = 'none';
+    return;
+  }
+
+  const r = resumenDeudaAtleta(atletaId);
+  const listaDebidas = r.debidas_nums.length ? r.debidas_nums.map(n=>`#${n}`).join(', ') : '—';
+  const listaPend = r.pendientes_nums.length ? r.pendientes_nums.map(n=>`#${n}`).join(', ') : '—';
+  const listaPag = r.pagadas_nums.length ? r.pagadas_nums.map(n=>`#${n}`).join(', ') : '—';
+
+  texto.innerHTML = `
+    <div><strong>Quincena actual:</strong> #${r.quincena_actual}</div>
+    <div><strong>Quincenas debidas:</strong> ${r.debidas} ${r.debidas ? `(${listaDebidas})` : ''}</div>
+    <div><strong>Quincenas en revisión:</strong> ${r.pendientes_nums.length ? listaPend : 'ninguna'}</div>
+    <div><strong>Quincenas pagadas:</strong> ${r.pagadas_nums.length ? listaPag : 'ninguna'}</div>
+    <div><strong>Total adeudado:</strong>
+      <span style="color:#fbbf24;font-weight:700">${fmt(r.total_bs)} Bs</span>
+      <span class="muted small">(≈ ${fmt(r.total_usd)} USD · tasa ${fmt(r.tasa)})</span>
+    </div>
+    <div class="muted small">Monto por quincena: ${fmt(r.monto_quincena_usd)} USD</div>
+  `;
+  cont.style.display = 'block';
+  actualizarCoberturaPago();
+}
+
+function actualizarCoberturaPago(){
+  const cobertura = $('pago-cobertura');
+  if(!cobertura) return;
+
+  const atletaId = Number($('pago_atleta').value);
+  const fq = $('fecha_quincena').value;
+  if(!atletaId || !fq){ cobertura.style.display = 'none'; return; }
+
+  const numQ = calcularNumeroQuincena(fq);
+  if(!numQ){
+    cobertura.style.display = 'block';
+    cobertura.style.background = '#3a0f10';
+    cobertura.style.borderColor = '#6a1415';
+    cobertura.style.color = '#ffb3b3';
+    cobertura.textContent = '⚠️ La fecha de quincena es anterior al corte, no corresponde a ninguna quincena.';
+    return;
+  }
+
+  const est = estadoQuincenaAtleta(atletaId, numQ);
+  cobertura.style.display = 'block';
+
+  if(est.tipo === 'pagada'){
+    cobertura.style.background = '#3a0f10';
+    cobertura.style.borderColor = '#6a1415';
+    cobertura.style.color = '#ffb3b3';
+    cobertura.textContent = `⚠️ La quincena #${numQ} ya está PAGADA (pago #${est.pago_id}, ${fmt(est.monto)} USD el ${est.fecha}). Este pago no bajará la mora porque no suma una quincena nueva.`;
+  } else if(est.tipo === 'pendiente'){
+    cobertura.style.background = '#422006';
+    cobertura.style.borderColor = '#854d0e';
+    cobertura.style.color = '#fbbf24';
+    cobertura.textContent = `⏳ La quincena #${numQ} ya tiene un aporte PENDIENTE de verificación (pago #${est.pago_id}). Si registrás otro, quedará duplicado hasta que el admin resuelva.`;
+  } else if(est.tipo === 'futura'){
+    cobertura.style.background = '#0c1c3a';
+    cobertura.style.borderColor = '#1e3a72';
+    cobertura.style.color = '#b9cdff';
+    cobertura.textContent = `ℹ️ La quincena #${numQ} es FUTURA (la actual es #${quincenaActualNumero()}). Se registrará como adelanto; no bajará la mora actual.`;
+  } else {
+    cobertura.style.background = '#062e22';
+    cobertura.style.borderColor = '#0d5138';
+    cobertura.style.color = '#8ff0c7';
+    cobertura.textContent = `✅ Este pago cubre la quincena #${numQ} (estaba debida). Al aprobarse, la mora bajará 1.`;
+  }
+
+  const monto = Number($('monto')?.value) || 0;
+  const mq = Number(getConfig('monto_quincena','50')) || 50;
+  if(monto > 0 && monto % mq === 0 && monto / mq > 1){
+    cobertura.textContent += ` 💡 El monto (${fmt(monto)} USD) equivale a ${monto/mq} quincenas, pero esta app registra 1 quincena por pago. Si querés cubrir varias, registrá un pago por cada una.`;
+  }
+}
+
+function renderResumenAtleta(){
+  const cont = $('ra-resumen');
+  if(!cont || !usuarioActual || !usuarioActual.id) return;
+
+  const r = resumenDeudaAtleta(usuarioActual.id);
+  const listaDebidas = r.debidas_nums.length ? r.debidas_nums.map(n=>`#${n}`).join(', ') : '—';
+  const listaPend = r.pendientes_nums.length ? r.pendientes_nums.map(n=>`#${n}`).join(', ') : '—';
+
+  if(r.debidas === 0 && r.pendientes_nums.length === 0){
+    cont.innerHTML = `<div style="color:#10b981;font-weight:600">✅ Estás al día. No tenés quincenas debidas.</div>`;
+    return;
+  }
+
+  cont.innerHTML = `
+    <div><strong>Quincena actual:</strong> #${r.quincena_actual}</div>
+    <div><strong>Quincenas debidas:</strong> ${r.debidas} ${r.debidas ? `(${listaDebidas})` : ''}</div>
+    ${r.pendientes_nums.length ? `<div><strong>En revisión:</strong> ${listaPend}</div>` : ''}
+    <div><strong>Total adeudado:</strong>
+      <span style="color:#fbbf24;font-weight:700">${fmt(r.total_bs)} Bs</span>
+      <span class="muted small">(≈ ${fmt(r.total_usd)} USD)</span>
+    </div>
+    <div class="muted small">Monto por quincena: ${fmt(r.monto_quincena_usd)} USD · Tasa ${fmt(r.tasa)} Bs/$</div>
+  `;
 }
 
 /* ============================================================
@@ -688,7 +1083,6 @@ function guardarAtleta(){
 
   const idEdit = $('atleta_id').value ? Number($('atleta_id').value) : null;
 
-  // Bug 2: validar cédula duplicada al crear
   if(!idEdit){
     const existe = one('SELECT id FROM atletas WHERE identificacion=?', [ident]);
     if(existe){
@@ -702,7 +1096,6 @@ function guardarAtleta(){
   }
 
   try{
-    // UPSERT representante
     db.run(`INSERT INTO representantes(identificacion,nombre,apellido,telefono,email,parentesco)
             VALUES(?,?,?,?,?,?)
             ON CONFLICT(identificacion) DO UPDATE SET
@@ -711,7 +1104,6 @@ function guardarAtleta(){
       [repId, repNom, repApe,
        $('rep_telefono').value.trim(), $('rep_email').value.trim(), $('rep_parentesco').value]);
 
-    // Bug 1: verificar que el representante exista
     const rep = one('SELECT id FROM representantes WHERE identificacion=?', [repId]);
     if(!rep || !rep.id){
       return showMsg(msg,'err','No se pudo guardar el representante.');
@@ -745,7 +1137,7 @@ function guardarAtleta(){
 }
 
 /* ============================================================
-   Formulario pago
+   Formulario pago (admin)
    ============================================================ */
 function limpiarFormPago(){
   ['monto','monto_bs','referencia','banco_origen','telefono_origen','observacion'].forEach(id=>{
@@ -758,6 +1150,10 @@ function limpiarFormPago(){
   $('metodo_pago_id').value = '';
   $('pago_atleta').value = '';
   const t = $('tasa'); if(t) t.value = getConfig('tasa_dolar','36.50');
+  actualizarNumeroQuincena();
+
+  const r = $('pago-resumen-atleta'); if(r) r.style.display = 'none';
+  const c = $('pago-cobertura'); if(c) c.style.display = 'none';
 }
 
 function actualizarNumeroQuincena(){
@@ -780,7 +1176,6 @@ function registrarPago(){
     return showMsg(msg,'err','Complete atleta, método, fechas y monto.');
   }
 
-  // Bug 4: validar contra corte
   const corte = getConfig('fecha_corte_quincena','2026-10-30');
   if(fechaQ < corte){
     return showMsg(msg,'err',`La fecha de quincena no puede ser anterior al corte (${corte}).`);
@@ -790,7 +1185,6 @@ function registrarPago(){
     return showMsg(msg,'err','No se pudo calcular el número de quincena.');
   }
 
-  // Validar duplicado
   const ref = $('referencia').value.trim();
   const dup = one(`SELECT id FROM pagos WHERE atleta_id=? AND metodo_pago_id=?
                    AND IFNULL(referencia,'')=? AND fecha=?`,
@@ -800,6 +1194,7 @@ function registrarPago(){
   }
 
   try{
+    // 1. Insertamos el pago base
     db.run(`INSERT INTO pagos(atleta_id,metodo_pago_id,fecha,fecha_quincena,numero_quincena,
             monto,moneda,monto_bs_original,tasa,referencia,banco_origen,telefono_origen,
             observacion,estado,pendiente_subir)
@@ -809,21 +1204,173 @@ function registrarPago(){
        ref, $('banco_origen').value.trim(), $('telefono_origen').value.trim(),
        $('observacion').value.trim(), estado]);
 
+    // 2. Si es PAGADO, calculamos y descontamos quincenas extras
     if(estado==='pagado'){
+      const montoQuincena = Number(getConfig('monto_quincena','50')) || 50;
+      const cantQuincenas = Math.floor(monto / montoQuincena);
+      
+      const r = resumenDeudaAtleta(atletaId);
+      const quincenasDebidas = r.debidas_nums; 
+
+      let restantes = cantQuincenas - 1;
+      for (let i = 1; i < quincenasDebidas.length && restantes > 0; i++) {
+        // Insertamos un pago de ajuste de 0 Bs para marcar la quincena como saldada
+        db.run(`INSERT INTO pagos(atleta_id, monto, fecha, numero_quincena, estado, pendiente_subir) 
+                VALUES(?, 0, date('now'), ?, 'pagado', 1)`, [atletaId, quincenasDebidas[i]]);
+        restantes--;
+      }
+      
+      // Descontar deuda manual
       db.run(`UPDATE atletas SET deuda = MAX(0, deuda - ?) WHERE id=?`, [monto, atletaId]);
     }
 
     guardarBDEnIDB();
     renderPagos(); renderAtletas();
     limpiarFormPago();
-    showMsg(msg,'ok',`Pago registrado (quincena #${numQ}).`);
+    
+    if(estado === 'pagado'){
+      const cant = Math.floor(monto / (Number(getConfig('monto_quincena','50')) || 50));
+      showMsg(msg,'ok',`Pago registrado. Se saldaron ${cant > 0 ? cant : 1} quincena(s).`);
+    } else {
+      showMsg(msg,'ok',`Pago registrado (Pendiente de verificación).`);
+    }
   }catch(e){
     showMsg(msg,'err','Error al registrar: '+e.message);
   }
 }
 
 /* ============================================================
-   GitHub — sincronización v2
+   Reportar aporte (Atleta)
+   ============================================================ */
+function reportarAporteAtleta(){
+  const msg = $('ra-msg');
+  hideMsg(msg);
+  if(!usuarioActual || !usuarioActual.id){
+    return showMsg(msg,'err','Sesión no detectada. Volvé a iniciar sesión.');
+  }
+  const monto = Number($('ra-monto').value);
+  const metodoId = Number($('ra-metodo').value);
+  const referencia = ($('ra-referencia').value||'').trim();
+  const nota = ($('ra-nota').value||'').trim();
+
+  if(!monto || monto <= 0) return showMsg(msg,'err','Ingresá un monto válido.');
+  if(!metodoId)            return showMsg(msg,'err','Seleccioná un método de pago.');
+
+  const fecha = hoyISO();
+  const fechaQ = fechaQuincenaActual();
+  const numQ = calcularNumeroQuincena(fechaQ);
+
+  const dup = one(`SELECT id FROM pagos WHERE atleta_id=? AND metodo_pago_id=?
+                   AND IFNULL(referencia,'')=? AND fecha=?`,
+                  [usuarioActual.id, metodoId, referencia, fecha]);
+  if(dup){
+    return showMsg(msg,'err','Ya reportaste un aporte con esa referencia hoy.');
+  }
+
+  try{
+    db.run(`INSERT INTO pagos(atleta_id,metodo_pago_id,fecha,fecha_quincena,numero_quincena,
+            monto,moneda,monto_bs_original,tasa,referencia,observacion,estado,pendiente_subir)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?, 'pendiente', 1)`,
+      [usuarioActual.id, metodoId, fecha, fechaQ, numQ,
+       monto, 'USD', 0, Number(getConfig('tasa_dolar','36.50'))||0,
+       referencia, nota]);
+
+    guardarBDEnIDB();
+
+    $('ra-monto').value = '';
+    $('ra-metodo').value = '';
+    $('ra-referencia').value = '';
+    $('ra-nota').value = '';
+
+    showMsg(msg,'ok','✅ Aporte enviado. Queda pendiente de verificación del administrador.');
+    renderVistaAtleta();
+
+    subirAGitHub().catch(err=>console.warn('Sync post-aporte:', err));
+  }catch(e){
+    showMsg(msg,'err','Error al guardar el aporte: '+e.message);
+  }
+}
+
+/* ============================================================
+   Aprobar / Rechazar (Admin)
+   ============================================================ */
+function aprobarPago(pagoId){
+  if(!confirm('¿Confirmas que el aporte fue recibido? Se descontarán todas las quincenas que cubra este monto.')) return;
+  try{
+    const p = one(`SELECT id, atleta_id, monto FROM pagos WHERE id=? AND estado='pendiente'`, [pagoId]);
+    if(!p){
+      alert('El pago no existe o ya fue procesado.');
+      return;
+    }
+
+    // 1. Calcular cuántas quincenas cubre este monto
+    const montoQuincena = Number(getConfig('monto_quincena','50')) || 50;
+    const cantQuincenas = Math.floor(Number(p.monto) / montoQuincena);
+    
+    // 2. Buscar cuáles son las quincenas que debe el atleta (de la más vieja a la más nueva)
+    const r = resumenDeudaAtleta(p.atleta_id);
+    const quincenasDebidas = r.debidas_nums; 
+
+    // 3. Asignar el pago a la primera quincena debida
+    if (quincenasDebidas.length > 0) {
+      db.run(`UPDATE pagos SET estado='pagado', numero_quincena=? WHERE id=?`, [quincenasDebidas[0], pagoId]);
+    } else {
+      db.run(`UPDATE pagos SET estado='pagado' WHERE id=?`, [pagoId]);
+    }
+
+    // 4. Si el monto cubre más quincenas, crear pagos de ajuste (monto 0) para saldar el resto
+    let restantes = cantQuincenas - 1;
+    for (let i = 1; i < quincenasDebidas.length && restantes > 0; i++) {
+      db.run(`INSERT INTO pagos(atleta_id, monto, fecha, numero_quincena, estado, pendiente_subir) 
+              VALUES(?, 0, date('now'), ?, 'pagado', 1)`, [p.atleta_id, quincenasDebidas[i]]);
+      restantes--;
+    }
+
+    // 5. Descontar la deuda manual (atletas.deuda) por el monto total recibido
+    db.run(`UPDATE atletas SET deuda = MAX(0, deuda - ?) WHERE id=?`, [Number(p.monto)||0, p.atleta_id]);
+    
+    guardarBDEnIDB();
+
+    renderPagosPendientes();
+    renderPagos();
+    renderAtletas();
+    if(usuarioActual && usuarioActual.rol === 'admin') refrescarAdmin();
+    
+    alert(`✅ Pago aprobado. Cubrió ${cantQuincenas > 0 ? cantQuincenas : 1} quincena(s). La mora fue actualizada.`);
+
+    subirAGitHub().catch(err=>console.warn('Sync post-aprobación:', err));
+  }catch(e){
+    console.error('Error aprobando pago:', e);
+    alert('❌ Error al aprobar: '+e.message);
+  }
+}
+
+function rechazarPago(pagoId){
+  if(!confirm('¿Rechazar y eliminar este aporte? Esta acción no se puede deshacer.')) return;
+  try{
+    const p = one(`SELECT id FROM pagos WHERE id=? AND estado='pendiente'`, [pagoId]);
+    if(!p){
+      alert('El pago no existe o ya fue procesado.');
+      return;
+    }
+    db.run(`DELETE FROM pagos WHERE id=? AND estado='pendiente'`, [pagoId]);
+    guardarBDEnIDB();
+
+    renderPagosPendientes();
+    renderPagos();
+    renderAtletas();
+    if(usuarioActual && usuarioActual.rol === 'admin') refrescarAdmin();
+    alert('❌ Aporte rechazado y eliminado.');
+
+    subirAGitHub().catch(err=>console.warn('Sync post-rechazo:', err));
+  }catch(e){
+    console.error('Error rechazando pago:', e);
+    alert('❌ Error al rechazar: '+e.message);
+  }
+}
+
+/* ============================================================
+   GitHub — sync v2
    ============================================================ */
 function construirRawURL(){
   const u = getConfig('github_usuario','');
@@ -906,7 +1453,6 @@ async function subirAGitHub(){
     if(!r.ok) return {ok:false, error:`PUT ${r.status}: ${(await r.text()).slice(0,240)}`};
     const j = await r.json();
 
-    // Bug 5: marcar solo los IDs incluidos en el payload
     const ids = pagos.map(p=>p.id).filter(Boolean);
     if(ids.length){
       db.run(`UPDATE pagos SET pendiente_subir=0 WHERE id IN (${ids.join(',')})`);
@@ -974,18 +1520,23 @@ async function sincronizarDesdeGitHub(){
       const metodo = one('SELECT id FROM metodos_pago WHERE nombre=? OR codigo=?',
                         [String(p.metodo_pago||''), String(p.metodo_pago||'').toUpperCase()]);
 
-      // Bug 7: fecha canónica = fecha_quincena si existe (pendientes), si no fecha
       const fecha = p.fecha || p.fecha_quincena;
-      if(!fecha) continue; // sin fecha canónica no podemos insertar (NOT NULL)
+      if(!fecha) continue;
 
       const ref = p.referencia!=null ? String(p.referencia) : '';
 
-      // Bug 6: si hay un pago local no subido con misma clave, no duplicar
-      const existeLocal = one(`SELECT id, pendiente_subir FROM pagos
+      const existeLocal = one(`SELECT id, estado FROM pagos
                                WHERE atleta_id=? AND metodo_pago_id=?
                                AND IFNULL(referencia,'')=? AND fecha=?`,
                               [at.id, metodo?.id||null, ref, fecha]);
-      if(existeLocal) continue;
+
+      if(existeLocal){
+        const estadoRemoto = p.estado || 'pagado';
+        if(existeLocal.estado === 'pendiente' && estadoRemoto === 'pagado'){
+          db.run(`UPDATE pagos SET estado='pagado', pendiente_subir=0 WHERE id=?`, [existeLocal.id]);
+        }
+        continue;
+      }
 
       db.run(`INSERT INTO pagos(atleta_id,metodo_pago_id,fecha,fecha_quincena,numero_quincena,
               monto,moneda,monto_bs_original,tasa,referencia,banco_origen,telefono_origen,estado,pendiente_subir)
@@ -1002,25 +1553,87 @@ async function sincronizarDesdeGitHub(){
 }
 
 /* ============================================================
-   Login / init / eventos
+   Login / vista atleta
    ============================================================ */
 function renderVistaAtleta(){
-  if(!usuarioActual) return;
+  if(!usuarioActual || !usuarioActual.id) return;
   const a = one(`SELECT a.*, r.nombre AS rep_nombre, r.apellido AS rep_apellido, r.telefono AS rep_tel
                  FROM atletas a LEFT JOIN representantes r ON r.id=a.representante_id
                  WHERE a.id=?`, [usuarioActual.id]);
   if(!a) return;
   $('atleta-nombre').textContent = `${a.p_nombre||''} ${a.p_apellido||''}`.trim() || '—';
   $('atleta-cedula').textContent = a.identificacion||'—';
-  $('atleta-deuda').textContent = fmt(a.deuda);
-  $('atleta-estado').textContent = Number(a.deuda) > 0 ? 'Con deuda' : 'Al día';
 
-  const pagos = all(`SELECT p.fecha, p.monto, p.referencia
-                     FROM pagos p WHERE p.atleta_id=? ORDER BY p.fecha DESC LIMIT 50`,
+  const d = calcularDeudaAtleta(a.id);
+  const deudaBs = $('atleta-deuda-bs');
+  if(deudaBs){
+    deudaBs.textContent = `${fmt(d.total_bs)} Bs`;
+    deudaBs.style.color = d.total_bs > 0 ? '#fbbf24' : '#10b981';
+  }
+  const deudaUsd = $('atleta-deuda-usd');
+  if(deudaUsd){
+    deudaUsd.textContent = d.total_usd > 0
+      ? `≈ ${fmt(d.total_usd)} USD (tasa ${fmt(d.tasa)} Bs/$)`
+      : 'Sin deuda pendiente';
+  }
+  const deudaDet = $('atleta-deuda-detalle');
+  if(deudaDet){
+    deudaDet.textContent = d.debidas > 0
+      ? `${d.debidas} quincena${d.debidas===1?'':'s'} × ${fmt(d.monto_quincena_usd)} USD = ${fmt(d.total_bs)} Bs`
+      : `Al día`;
+  }
+
+  const m = calcularMoraAtleta(a.id);
+  const elEstado = $('atleta-estado');
+  if(m.estado === 'no_practica'){
+    elEstado.textContent = '🚫 NO PUEDE PRACTICAR';
+    elEstado.style.color = '#ef4444';
+    elEstado.style.fontSize = '16px';
+  } else if(m.estado === 'mora'){
+    elEstado.textContent = `⚠️ Mora: ${m.debidas} quincena${m.debidas===1?'':'s'}`;
+    elEstado.style.color = '#f59e0b';
+    elEstado.style.fontSize = '18px';
+  } else if(m.estado === 'ok'){
+    elEstado.textContent = '✅ Al día';
+    elEstado.style.color = '#10b981';
+    elEstado.style.fontSize = '20px';
+  } else {
+    elEstado.textContent = 'Sin iniciar';
+    elEstado.style.color = '#9aa7c7';
+    elEstado.style.fontSize = '18px';
+  }
+
+  const pend = all(`SELECT monto FROM pagos
+                    WHERE atleta_id=? AND estado='pendiente'`, [a.id]);
+  const avisoAnterior = $('atleta-pend-aviso');
+  if(avisoAnterior) avisoAnterior.remove();
+  if(pend.length){
+    const totalPend = pend.reduce((s,r)=>s+(Number(r.monto)||0), 0);
+    const div = document.createElement('div');
+    div.id = 'atleta-pend-aviso';
+    div.className = 'aviso-pendiente';
+    div.innerHTML = `⏳ Tenés <strong>${pend.length}</strong> aporte(s) en revisión por
+                     <strong>${fmt(totalPend)}</strong>. La mora se actualizará al ser aprobados.`;
+    const cardResumen = deudaBs?.closest('.card');
+    if(cardResumen) cardResumen.appendChild(div);
+  }
+
+  const pagos = all(`SELECT p.fecha, p.monto, p.referencia, p.numero_quincena, p.estado
+                     FROM pagos p WHERE p.atleta_id=? ORDER BY p.fecha DESC, p.id DESC LIMIT 50`,
                     [a.id]);
-  $('atleta-pagos-tbody').innerHTML = pagos.map(p=>`
-    <tr><td>${p.fecha||''}</td><td>${fmt(p.monto)}</td><td>${p.referencia||''}</td></tr>
-  `).join('') || `<tr><td colspan="3" class="muted center">Sin pagos.</td></tr>`;
+  $('atleta-pagos-tbody').innerHTML = pagos.map(p=>{
+    const badgeClase = p.estado==='pagado' ? 'ok' : (p.estado==='pendiente' ? 'warn' : 'err');
+    return `<tr>
+      <td>${p.fecha||''}</td>
+      <td>${fmt(p.monto)}</td>
+      <td>${p.referencia||''}</td>
+      <td>${p.numero_quincena?`#${p.numero_quincena}`:''}</td>
+      <td><span class="badge ${badgeClase}">${p.estado||''}</span></td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="5" class="muted center">Sin pagos.</td></tr>`;
+
+  renderResumenAtleta();
+  cargarMetodosEnSelectAtleta();
 }
 
 function loginAtleta(){
@@ -1050,6 +1663,7 @@ function loginAdmin(){
   usuarioActual = {rol:'admin'};
   mostrarVista('view-admin');
   refrescarAdmin();
+  actualizarTasaBCV(true);
 }
 
 function refrescarAdmin(){
@@ -1057,9 +1671,9 @@ function refrescarAdmin(){
   renderPagos();
   cargarMetodosEnSelect();
   cargarAtletasEnSelectPago();
-  // Config
   $('c-monto-semanal').value = getConfig('monto_semanal','50');
   $('c-monto-periodo').value = getConfig('monto_periodo','200');
+  $('c-monto-quincena').value = getConfig('monto_quincena','50');
   $('c-moneda').value = getConfig('moneda','USD');
   $('c-tasa-dolar').value = getConfig('tasa_dolar','36.50');
   $('c-clave-admin').value = getConfig('clave_admin','admin123');
@@ -1069,22 +1683,39 @@ function refrescarAdmin(){
   $('c-gh-ruta').value = getConfig('github_ruta','datos/atletas.json');
   $('c-gh-rama').value = getConfig('github_rama','main');
   $('c-gh-token').value = getConfig('github_token','');
-  // Aplicar tasa al form de pago y precargar fecha_quincena actual
   const t = $('tasa'); if(t) t.value = getConfig('tasa_dolar','36.50');
   const fq = $('fecha_quincena');
   if(fq && !fq.value) fq.value = fechaQuincenaActual();
   actualizarNumeroQuincena();
-  // Diagnóstico
+
+  const info = $('tasa-bcv-info');
+  if(info){
+    const f = getConfig('tasa_bcv_fecha','');
+    const act = getConfig('tasa_bcv_actualizado','');
+    info.textContent = f
+      ? `BCV: ${fmt(getConfig('tasa_dolar','36.50'))} Bs/$ · Vigencia: ${f} · Actualizado: ${act ? new Date(act).toLocaleString('es-VE') : '—'}`
+      : '';
+  }
+
   const nA = all('SELECT COUNT(*) AS n FROM atletas')[0]?.n || 0;
   const nP = all('SELECT COUNT(*) AS n FROM pagos')[0]?.n || 0;
   const pend = all('SELECT COUNT(*) AS n FROM pagos WHERE pendiente_subir=1')[0]?.n || 0;
+  const nPendVerif = all(`SELECT COUNT(*) AS n FROM pagos WHERE estado='pendiente'`)[0]?.n || 0;
+  const qAct = quincenaActualNumero();
+  const moras = all('SELECT id FROM atletas WHERE activo=1').map(a=>calcularMoraAtleta(a.id));
+  const enMora = moras.filter(m=>m.estado==='mora').length;
+  const morosos = moras.filter(m=>m.estado==='no_practica').length;
   $('diag').textContent =
-    `Atletas: ${nA} · Pagos: ${nP} (${pend} pend. subir) · ` +
+    `Atletas: ${nA} · Pagos: ${nP} (${pend} pend. subir, ${nPendVerif} por verificar) · ` +
     `schema_version: ${getConfig('schema_version','?')} · tasa_dolar: ${getConfig('tasa_dolar','?')} · ` +
-    `corte: ${getConfig('fecha_corte_quincena','?')}`;
+    `monto_quincena: ${getConfig('monto_quincena','?')} USD · ` +
+    `corte: ${getConfig('fecha_corte_quincena','?')} · ` +
+    `quincena actual: ${qAct} · en mora: ${enMora} · NO practican: ${morosos}`;
 }
 
-/* Eventos */
+/* ============================================================
+   Eventos
+   ============================================================ */
 function wireEvents(){
   $('btn-login-atleta').onclick = loginAtleta;
   $('btn-login-admin').onclick  = loginAdmin;
@@ -1092,7 +1723,8 @@ function wireEvents(){
   $('btn-logout-admin').onclick  = ()=>{ usuarioActual=null; mostrarVista('view-login'); };
   $('btn-ver-pagos').onclick = ()=> $('atleta-pagos-card').classList.toggle('hidden');
 
-  // Tabs admin
+  $('btn-reportar-aporte').onclick = reportarAporteAtleta;
+
   document.querySelectorAll('#admin-tabs button').forEach(b=>{
     b.onclick = ()=>{
       document.querySelectorAll('#admin-tabs button').forEach(x=>x.classList.remove('active'));
@@ -1100,23 +1732,27 @@ function wireEvents(){
       ['atletas','pagos','config'].forEach(t=>{
         $('tab-'+t).classList.toggle('hidden', t!==b.dataset.tab);
       });
+      if(b.dataset.tab === 'pagos') renderPagosPendientes();
     };
   });
 
-  // Formulario atleta
   $('form-atleta').onsubmit = (e)=>{ e.preventDefault(); guardarAtleta(); };
   $('btn-limpiar-atleta').onclick = limpiarFormAtleta;
   $('buscar-atleta').oninput = renderAtletas;
 
-  // Formulario pago
   $('form-pago').onsubmit = (e)=>{ e.preventDefault(); registrarPago(); };
   $('btn-limpiar-pago').onclick = limpiarFormPago;
-  $('fecha_quincena').addEventListener('change', actualizarNumeroQuincena);
+  $('fecha_quincena').addEventListener('change', ()=>{
+    actualizarNumeroQuincena();
+    actualizarCoberturaPago();
+  });
+  $('monto').addEventListener('input', actualizarCoberturaPago);
+  $('pago_atleta').addEventListener('change', renderResumenPagoAdmin);
 
-  // Config
   $('btn-guardar-config').onclick = ()=>{
     setConfig('monto_semanal', $('c-monto-semanal').value);
     setConfig('monto_periodo', $('c-monto-periodo').value);
+    setConfig('monto_quincena', $('c-monto-quincena').value);
     setConfig('moneda', $('c-moneda').value);
     setConfig('tasa_dolar', $('c-tasa-dolar').value);
     setConfig('clave_admin', $('c-clave-admin').value);
@@ -1126,7 +1762,8 @@ function wireEvents(){
     refrescarAdmin();
   };
 
-  // GitHub
+  $('btn-tasa-bcv').onclick = ()=> actualizarTasaBCV(false);
+
   $('btn-guardar-gh').onclick = ()=>{
     setConfig('github_usuario', $('c-gh-user').value.trim());
     setConfig('github_repo', $('c-gh-repo').value.trim());
@@ -1152,7 +1789,6 @@ function wireEvents(){
     } else showMsg($('gh-msg'),'err', r.error);
   };
 
-  // Sync desde login
   $('btn-sync-login').onclick = async ()=>{
     showMsg($('sync-login-msg'),'info','Sincronizando…');
     const r = await sincronizarDesdeGitHub();
@@ -1166,7 +1802,6 @@ function wireEvents(){
     else showMsg($('sync-atleta-msg'),'err', r.error);
   };
 
-  // Respaldo
   $('btn-respaldar').onclick = ()=>{
     const data = db.export();
     const blob = new Blob([data], {type:'application/octet-stream'});
