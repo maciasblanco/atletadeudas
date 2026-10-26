@@ -1,7 +1,7 @@
 {
   "name": "AtletaDeudas — Control de aportes y pagos",
   "short_name": "AtletaDeudas",
-  "description": "Control de aportes y pagos para atletas, offline-first con GitHub como almacén remoto.",
+  "description": "Control de aportes, representantes y pagos para atletas, offline-first con GitHub como almacén remoto.",
   "start_url": "./index.html",
   "scope": "./",
   "id": "./",

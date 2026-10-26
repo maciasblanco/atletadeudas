@@ -1,4 +1,4 @@
-const CACHE = 'atletadeudas-v3';
+const CACHE = 'atletadeudas-v4';
 
 const APP_SHELL = [
   './',
