@@ -807,14 +807,18 @@ function renderAtletas(){
                 (a.rep_tel ? ` · ${a.rep_tel}` : '');
     const m = calcularMoraAtleta(a.id);
     const d = calcularDeudaAtleta(a.id);
+    
+    // CORRECCIÓN: Usar la deuda del JSON si existe (mayor a 0), si no, usar la calculada
+    const deudaMostrar = (a.deuda !== null && a.deuda !== undefined && Number(a.deuda) > 0) ? Number(a.deuda) : d.total_bs;
+    
     const filaClase = (m.estado === 'no_practica') ? 'fila-no-practica' : '';
     return `<tr class="${filaClase}">
       <td>${a.identificacion||''}</td>
       <td>${nombre}</td>
       <td>${rep||'—'}</td>
       <td>${a.categoria||'—'}</td>
-      <td style="color:#fbbf24">${fmt(d.total_bs)} Bs</td>
-      <td>${badgeMoraHTML(m, d.total_bs)}</td>
+      <td style="color:#fbbf24">${fmt(deudaMostrar)} Bs</td>
+      <td>${badgeMoraHTML(m, deudaMostrar)}</td>
       <td class="acciones">
         <button data-id="${a.id}" data-acc="edit">✏️</button>
       </td>
