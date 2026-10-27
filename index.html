@@ -423,14 +423,14 @@ function diasEntre(aISO, bISO){
   return Math.round((b - a) / 86400000);
 }
 function calcularNumeroQuincena(fechaQ){
-  const corte = getConfig('fecha_corte_quincena','2026-10-30');
+  const corte = getConfig('fecha_corte_quincena','2026-09-29'); // CORREGIDO
   const nIni  = Number(getConfig('numero_quincena_inicial','1')) || 1;
   if(!fechaQ || fechaQ < corte) return null;
   const dif = diasEntre(corte, fechaQ);
   return nIni + Math.floor(dif / 7);
 }
 function fechaQuincenaActual(){
-  const corte = getConfig('fecha_corte_quincena','2026-10-30');
+  const corte = getConfig('fecha_corte_quincena','2026-09-29'); // CORREGIDO
   const hoy = hoyISO();
   if(hoy < corte) return corte;
   const dif = diasEntre(corte, hoy);
@@ -616,12 +616,12 @@ function crearSchema(){
   }
 
   const defaults = {
-    monto_semanal:'50', monto_periodo:'200', monto_quincena:'50',
+    monto_semanal:'5', monto_periodo:'20', monto_quincena:'5', // CORREGIDO (5 USD por quincena)
     moneda:'USD',
     clave_admin:'admin123', clave_generica:'123456',
     tasa_dolar:'36.50',
     tasa_bcv_fecha:'', tasa_bcv_actualizado:'',
-    fecha_corte_quincena:'2026-10-30',
+    fecha_corte_quincena:'2026-09-29', // CORREGIDO (fecha de inicio)
     numero_quincena_inicial:'1',
     schema_version:String(SCHEMA_VER),
     github_usuario:'', github_repo:'', github_ruta:'datos/atletas.json',
@@ -641,7 +641,7 @@ function crearSchema(){
    Mora y deuda
    ============================================================ */
 function quincenaActualNumero(){
-  const corte = getConfig('fecha_corte_quincena','2026-10-30');
+  const corte = getConfig('fecha_corte_quincena','2026-09-29'); // CORREGIDO
   const hoy = hoyISO();
   if(hoy < corte) return 0;
   const dif = diasEntre(corte, hoy);
@@ -685,9 +685,9 @@ function badgeMoraHTML(m, totalBs){
 
 function calcularDeudaAtleta(atletaId){
   const m = calcularMoraAtleta(atletaId);
-  const montoPeriodo = Number(getConfig('monto_periodo','200')) || 200;
-  const montoSemanal = Number(getConfig('monto_semanal','50')) || 50;
-  const montoQuincenaUSD = Number(getConfig('monto_quincena', montoPeriodo/4 || montoSemanal*2)) || 50;
+  const montoPeriodo = Number(getConfig('monto_periodo','20')) || 20;
+  const montoSemanal = Number(getConfig('monto_semanal','5')) || 5;
+  const montoQuincenaUSD = Number(getConfig('monto_quincena', montoPeriodo/4 || montoSemanal*2)) || 5;
   const tasa = Number(getConfig('tasa_dolar','36.50')) || 36.50;
   const debidas = Math.max(0, m.debidas || 0);
   const totalUSD = debidas * montoQuincenaUSD;
@@ -808,8 +808,8 @@ function renderAtletas(){
     const m = calcularMoraAtleta(a.id);
     const d = calcularDeudaAtleta(a.id);
     
-    // CORRECCIÓN: Usar la deuda del JSON si existe (mayor a 0), si no, usar la calculada
-    const deudaMostrar = (a.deuda !== null && a.deuda !== undefined && Number(a.deuda) > 0) ? Number(a.deuda) : d.total_bs;
+    // CORRECCIÓN: Calcular siempre dinámicamente, ignorando el valor estático del JSON
+    const deudaMostrar = d.total_bs;
     
     const filaClase = (m.estado === 'no_practica') ? 'fila-no-practica' : '';
     return `<tr class="${filaClase}">
@@ -993,7 +993,7 @@ function actualizarCoberturaPago(){
   }
 
   const monto = Number($('monto')?.value) || 0;
-  const mq = Number(getConfig('monto_quincena','50')) || 50;
+  const mq = Number(getConfig('monto_quincena','5')) || 5;
   if(monto > 0 && monto % mq === 0 && monto / mq > 1){
     cobertura.textContent += ` 💡 El monto (${fmt(monto)} USD) equivale a ${monto/mq} quincenas, pero esta app registra 1 quincena por pago. Si querés cubrir varias, registrá un pago por cada una.`;
   }
@@ -1180,7 +1180,7 @@ function registrarPago(){
     return showMsg(msg,'err','Complete atleta, método, fechas y monto.');
   }
 
-  const corte = getConfig('fecha_corte_quincena','2026-10-30');
+  const corte = getConfig('fecha_corte_quincena','2026-09-29');
   if(fechaQ < corte){
     return showMsg(msg,'err',`La fecha de quincena no puede ser anterior al corte (${corte}).`);
   }
@@ -1210,7 +1210,7 @@ function registrarPago(){
 
     // 2. Si es PAGADO, calculamos y descontamos quincenas extras
     if(estado==='pagado'){
-      const montoQuincena = Number(getConfig('monto_quincena','50')) || 50;
+      const montoQuincena = Number(getConfig('monto_quincena','5')) || 5;
       const cantQuincenas = Math.floor(monto / montoQuincena);
       
       const r = resumenDeudaAtleta(atletaId);
@@ -1233,7 +1233,7 @@ function registrarPago(){
     limpiarFormPago();
     
     if(estado === 'pagado'){
-      const cant = Math.floor(monto / (Number(getConfig('monto_quincena','50')) || 50));
+      const cant = Math.floor(monto / (Number(getConfig('monto_quincena','5')) || 5));
       showMsg(msg,'ok',`Pago registrado. Se saldaron ${cant > 0 ? cant : 1} quincena(s).`);
     } else {
       showMsg(msg,'ok',`Pago registrado (Pendiente de verificación).`);
@@ -1308,7 +1308,7 @@ function aprobarPago(pagoId){
     }
 
     // 1. Calcular cuántas quincenas cubre este monto
-    const montoQuincena = Number(getConfig('monto_quincena','50')) || 50;
+    const montoQuincena = Number(getConfig('monto_quincena','5')) || 5;
     const cantQuincenas = Math.floor(Number(p.monto) / montoQuincena);
     
     // 2. Buscar cuáles son las quincenas que debe el atleta (de la más vieja a la más nueva)
@@ -1675,13 +1675,13 @@ function refrescarAdmin(){
   renderPagos();
   cargarMetodosEnSelect();
   cargarAtletasEnSelectPago();
-  $('c-monto-semanal').value = getConfig('monto_semanal','50');
-  $('c-monto-periodo').value = getConfig('monto_periodo','200');
-  $('c-monto-quincena').value = getConfig('monto_quincena','50');
+  $('c-monto-semanal').value = getConfig('monto_semanal','5');
+  $('c-monto-periodo').value = getConfig('monto_periodo','20');
+  $('c-monto-quincena').value = getConfig('monto_quincena','5');
   $('c-moneda').value = getConfig('moneda','USD');
   $('c-tasa-dolar').value = getConfig('tasa_dolar','36.50');
   $('c-clave-admin').value = getConfig('clave_admin','admin123');
-  $('c-fecha-corte').value = getConfig('fecha_corte_quincena','2026-10-30');
+  $('c-fecha-corte').value = getConfig('fecha_corte_quincena','2026-09-29');
   $('c-gh-user').value = getConfig('github_usuario','');
   $('c-gh-repo').value = getConfig('github_repo','');
   $('c-gh-ruta').value = getConfig('github_ruta','datos/atletas.json');
