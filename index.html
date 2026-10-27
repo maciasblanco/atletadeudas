@@ -422,26 +422,86 @@ function diasEntre(aISO, bISO){
   const b = new Date(bISO+'T00:00:00Z');
   return Math.round((b - a) / 86400000);
 }
+
+/* ============================================================
+   NUEVA LÓGICA DE QUINCENAS: 15 Y 30 (O ÚLTIMO DÍA DEL MES)
+   ============================================================ */
+function obtenerQuincenasDelMes(anio, mes) {
+    // mes: 0=Enero, 11=Diciembre
+    const ultimoDia = new Date(anio, mes + 1, 0).getDate();
+    return [15, Math.min(30, ultimoDia)]; // Para febrero: [15, 28 o 29]
+}
+
 function calcularNumeroQuincena(fechaQ){
-  const corte = getConfig('fecha_corte_quincena','2026-09-29'); // CORREGIDO
-  const nIni  = Number(getConfig('numero_quincena_inicial','1')) || 1;
+  const corte = getConfig('fecha_corte_quincena','2026-09-30');
   if(!fechaQ || fechaQ < corte) return null;
-  const dif = diasEntre(corte, fechaQ);
-  return nIni + Math.floor(dif / 7);
+  
+  const [anioC, mesC, diaC] = corte.split('-').map(Number);
+  const [anioF, mesF, diaF] = fechaQ.split('-').map(Number);
+  
+  let contador = 0;
+  let anio = anioC;
+  let mes = mesC - 1; // Ajustar a índice 0
+  
+  while (true) {
+    const quincenas = obtenerQuincenasDelMes(anio, mes);
+    for (const qDia of quincenas) {
+      const fechaQStr = `${anio}-${String(mes+1).padStart(2,'0')}-${String(qDia).padStart(2,'0')}`;
+      if (fechaQStr >= corte && fechaQStr <= fechaQ) {
+        contador++;
+      }
+    }
+    if (anio === anioF && mes === (mesF - 1)) break;
+    mes++;
+    if (mes > 11) { mes = 0; anio++; }
+  }
+  return contador > 0 ? contador : null;
 }
-function fechaQuincenaActual(){
-  const corte = getConfig('fecha_corte_quincena','2026-09-29'); // CORREGIDO
+
+function quincenaActualNumero(){
   const hoy = hoyISO();
-  if(hoy < corte) return corte;
-  const dif = diasEntre(corte, hoy);
-  const n = Math.floor(dif / 7);
-  return addDias(corte, n*7);
+  const corte = getConfig('fecha_corte_quincena', '2026-09-30');
+  if(hoy < corte) return 0;
+  
+  const [anioC, mesC, diaC] = corte.split('-').map(Number);
+  const [anioH, mesH, diaH] = hoy.split('-').map(Number);
+  
+  let contador = 0;
+  let anio = anioC;
+  let mes = mesC - 1; 
+  
+  while (true) {
+    const quincenas = obtenerQuincenasDelMes(anio, mes);
+    for (const qDia of quincenas) {
+      const fechaQStr = `${anio}-${String(mes+1).padStart(2,'0')}-${String(qDia).padStart(2,'0')}`;
+      if (fechaQStr >= corte && fechaQStr <= hoy) {
+        contador++;
+      }
+    }
+    if (anio === anioH && mes === (mesH - 1)) break;
+    mes++;
+    if (mes > 11) { mes = 0; anio++; }
+  }
+  return contador;
 }
+
+function fechaQuincenaActual(){
+  const hoy = hoyISO();
+  const [anio, mes, dia] = hoy.split('-').map(Number);
+  const quincenas = obtenerQuincenasDelMes(anio, mes - 1);
+  
+  for (let i = quincenas.length - 1; i >= 0; i--) {
+    const fechaQ = `${anio}-${String(mes).padStart(2,'0')}-${String(quincenas[i]).padStart(2,'0')}`;
+    if (fechaQ <= hoy) return fechaQ;
+  }
+  return `${anio}-${String(mes).padStart(2,'0')}-15`;
+}
+
 function showMsg(el, tipo, texto){ if(!el) return; el.className='msg show '+tipo; el.textContent=texto; }
 function hideMsg(el){ if(el){ el.className='msg'; el.textContent=''; } }
 
 /* ============================================================
-   TASA BCV AUTOMÁTICA (Crom Studio API - gratis, sin key)
+   TASA BCV AUTOMÁTICA
    ============================================================ */
 async function obtenerTasaBCV(){
   try{
@@ -616,12 +676,12 @@ function crearSchema(){
   }
 
   const defaults = {
-    monto_semanal:'5', monto_periodo:'20', monto_quincena:'5', // CORREGIDO (5 USD por quincena)
+    monto_semanal:'5', monto_periodo:'20', monto_quincena:'5',
     moneda:'USD',
     clave_admin:'admin123', clave_generica:'123456',
     tasa_dolar:'36.50',
     tasa_bcv_fecha:'', tasa_bcv_actualizado:'',
-    fecha_corte_quincena:'2026-09-29', // CORREGIDO (fecha de inicio)
+    fecha_corte_quincena:'2026-09-30',
     numero_quincena_inicial:'1',
     schema_version:String(SCHEMA_VER),
     github_usuario:'', github_repo:'', github_ruta:'datos/atletas.json',
@@ -640,14 +700,6 @@ function crearSchema(){
 /* ============================================================
    Mora y deuda
    ============================================================ */
-function quincenaActualNumero(){
-  const corte = getConfig('fecha_corte_quincena','2026-09-29'); // CORREGIDO
-  const hoy = hoyISO();
-  if(hoy < corte) return 0;
-  const dif = diasEntre(corte, hoy);
-  return 1 + Math.floor(dif / 7);
-}
-
 function calcularMoraAtleta(atletaId){
   const qActual = quincenaActualNumero();
   if(qActual <= 0){
@@ -808,7 +860,6 @@ function renderAtletas(){
     const m = calcularMoraAtleta(a.id);
     const d = calcularDeudaAtleta(a.id);
     
-    // CORRECCIÓN: Calcular siempre dinámicamente, ignorando el valor estático del JSON
     const deudaMostrar = d.total_bs;
     
     const filaClase = (m.estado === 'no_practica') ? 'fila-no-practica' : '';
@@ -1180,7 +1231,7 @@ function registrarPago(){
     return showMsg(msg,'err','Complete atleta, método, fechas y monto.');
   }
 
-  const corte = getConfig('fecha_corte_quincena','2026-09-29');
+  const corte = getConfig('fecha_corte_quincena','2026-09-30');
   if(fechaQ < corte){
     return showMsg(msg,'err',`La fecha de quincena no puede ser anterior al corte (${corte}).`);
   }
@@ -1681,7 +1732,7 @@ function refrescarAdmin(){
   $('c-moneda').value = getConfig('moneda','USD');
   $('c-tasa-dolar').value = getConfig('tasa_dolar','36.50');
   $('c-clave-admin').value = getConfig('clave_admin','admin123');
-  $('c-fecha-corte').value = getConfig('fecha_corte_quincena','2026-09-29');
+  $('c-fecha-corte').value = getConfig('fecha_corte_quincena','2026-09-30');
   $('c-gh-user').value = getConfig('github_usuario','');
   $('c-gh-repo').value = getConfig('github_repo','');
   $('c-gh-ruta').value = getConfig('github_ruta','datos/atletas.json');
