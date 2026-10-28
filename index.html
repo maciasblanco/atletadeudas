@@ -329,7 +329,6 @@
           <div><label>Moneda</label><input id="c-moneda" /></div>
           <div><label>Tasa USD (Bs)</label><input id="c-tasa-dolar" type="number" step="0.0001" /></div>
           <div><label>Clave admin</label><input id="c-clave-admin" /></div>
-          <!-- MOD: label aclaratorio (era "Fecha corte quincena") -->
           <div><label>Fecha inicio de deuda</label><input id="c-fecha-corte" type="date" min="2026-01-01" /></div>
         </div>
         <div class="row mt12">
@@ -419,13 +418,12 @@ function diasEntre(aISO, bISO){
    NUEVA LÓGICA DE QUINCENAS: 15 Y 30 (O ÚLTIMO DÍA DEL MES)
    ============================================================ */
 function obtenerQuincenasDelMes(anio, mes) {
-    // mes: 0=Enero, 11=Diciembre
     const ultimoDia = new Date(anio, mes + 1, 0).getDate();
-    return [15, Math.min(30, ultimoDia)]; // Para febrero: [15, 28 o 29]
+    return [15, Math.min(30, ultimoDia)]; 
 }
 
 function calcularNumeroQuincena(fechaQ){
-  const corte = getConfig('fecha_corte_quincena','2026-09-29'); // MOD: 2026-09-29
+  const corte = getConfig('fecha_corte_quincena','2026-09-29'); 
   if(!fechaQ || fechaQ < corte) return null;
 
   const [anioC, mesC, diaC] = corte.split('-').map(Number);
@@ -433,7 +431,7 @@ function calcularNumeroQuincena(fechaQ){
 
   let contador = 0;
   let anio = anioC;
-  let mes = mesC - 1; // Ajustar a índice 0
+  let mes = mesC - 1; 
 
   while (true) {
     const quincenas = obtenerQuincenasDelMes(anio, mes);
@@ -452,7 +450,7 @@ function calcularNumeroQuincena(fechaQ){
 
 function quincenaActualNumero(){
   const hoy = hoyISO();
-  const corte = getConfig('fecha_corte_quincena', '2026-09-29'); // MOD: 2026-09-29
+  const corte = getConfig('fecha_corte_quincena', '2026-09-29'); 
   if(hoy < corte) return 0;
 
   const [anioC, mesC, diaC] = corte.split('-').map(Number);
@@ -477,12 +475,9 @@ function quincenaActualNumero(){
   return contador;
 }
 
-// MOD: fechaQuincenaActual ya no devuelve fechas futuras.
-// Si hoy está antes de la primera quincena del mes, retrocede al mes anterior.
-// Si hoy es anterior al corte, devuelve la fecha de corte.
 function fechaQuincenaActual(){
   const hoy = hoyISO();
-  const corte = getConfig('fecha_corte_quincena', '2026-09-29'); // MOD: 2026-09-29
+  const corte = getConfig('fecha_corte_quincena', '2026-09-29'); 
   if(hoy < corte) return corte;
 
   const [anio, mes] = hoy.split('-').map(Number);
@@ -492,7 +487,6 @@ function fechaQuincenaActual(){
     if (fechaQ <= hoy) return fechaQ;
   }
 
-  // Hoy es antes de la primera quincena del mes → retroceder un mes
   let mp = mes - 1, ap = anio;
   if (mp < 1) { mp = 12; ap--; }
   const qp = obtenerQuincenasDelMes(ap, mp - 1);
@@ -685,11 +679,15 @@ function crearSchema(){
     clave_admin:'admin123', clave_generica:'123456',
     tasa_dolar:'36.50',
     tasa_bcv_fecha:'', tasa_bcv_actualizado:'',
-    fecha_corte_quincena:'2026-09-29', // MOD: fecha inicio de deuda
+    fecha_corte_quincena:'2026-09-29',
     numero_quincena_inicial:'1',
     schema_version:String(SCHEMA_VER),
-    github_usuario:'', github_repo:'', github_ruta:'datos/atletas.json',
-    github_rama:'main', github_token:''
+    // 👇 SOLUCIÓN DEFINITIVA: CONFIGURACIÓN INYECTADA AQUÍ
+    github_usuario:'maciasblanco', 
+    github_repo:'atletadeudas', 
+    github_ruta:'datos/atletas.json',
+    github_rama:'main', 
+    github_token:'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'
   };
   for(const [k,v] of Object.entries(defaults)){
     if(getConfig(k)===null) setConfig(k,v);
@@ -1235,7 +1233,7 @@ function registrarPago(){
     return showMsg(msg,'err','Complete atleta, método, fechas y monto.');
   }
 
-  const corte = getConfig('fecha_corte_quincena','2026-09-29'); // MOD: 2026-09-29
+  const corte = getConfig('fecha_corte_quincena','2026-09-29'); 
   if(fechaQ < corte){
     return showMsg(msg,'err',`La fecha de quincena no puede ser anterior al corte (${corte}).`);
   }
@@ -1459,7 +1457,6 @@ async function subirAGitHub(){
       cedula: String(a.identificacion||''),
       nombre: a.p_nombre||'', apellido: a.p_apellido||'',
       deuda: Number(a.deuda)||0,
-      // MOD: ?? no captura NaN
       activo: (a.activo == null ? 1 : (Number(a.activo) || 0)),
       categoria: a.categoria||'', escuela: a.escuela||'',
       representante: {
@@ -1548,7 +1545,6 @@ async function sincronizarDesdeGitHub(){
       repId = r?.id || null;
     }
     const existente = one('SELECT id FROM atletas WHERE identificacion=?', [ced]);
-    // MOD: ?? no captura NaN → forzamos default 1 si viene ausente
     const activoVal = (a.activo == null ? 1 : (Number(a.activo) || 0));
     if(existente){
       db.run(`UPDATE atletas SET p_nombre=?, p_apellido=?, categoria=?, escuela=?,
@@ -1731,7 +1727,7 @@ function refrescarAdmin(){
   $('c-moneda').value = getConfig('moneda','USD');
   $('c-tasa-dolar').value = getConfig('tasa_dolar','36.50');
   $('c-clave-admin').value = getConfig('clave_admin','admin123');
-  $('c-fecha-corte').value = getConfig('fecha_corte_quincena','2026-09-29'); // MOD
+  $('c-fecha-corte').value = getConfig('fecha_corte_quincena','2026-09-29'); 
   $('c-gh-user').value = getConfig('github_usuario','');
   $('c-gh-repo').value = getConfig('github_repo','');
   $('c-gh-ruta').value = getConfig('github_ruta','datos/atletas.json');
@@ -1890,13 +1886,48 @@ async function init(){
     limpiarFormPago();
     mostrarVista('view-login');
 
-    // MOD: obtener tasa BCV al arrancar (silencioso) y re-renderizar si hay sesión
     actualizarTasaBCV(true)
       .then(()=>{
         if(usuarioActual && usuarioActual.rol === 'admin') refrescarAdmin();
         else if(usuarioActual && usuarioActual.id) renderVistaAtleta();
       })
       .catch(err=>console.warn('Tasa BCV inicial:', err));
+
+    // 👇 SOLUCIÓN DEFINITIVA: Sincronización automática al abrir en un dispositivo nuevo
+    if(!bytes){ 
+       console.log('Primera vez en este dispositivo. Sincronizando automáticamente...');
+       setTimeout(async () => {
+           // Mostramos un aviso temporal de que está cargando
+           const loadMsg = document.createElement('div');
+           loadMsg.id = 'load-alert';
+           loadMsg.className = 'msg show info';
+           loadMsg.style.position = 'fixed';
+           loadMsg.style.top = '20px';
+           loadMsg.style.left = '50%';
+           loadMsg.style.transform = 'translateX(-50%)';
+           loadMsg.style.zIndex = '9999';
+           loadMsg.style.textAlign = 'center';
+           loadMsg.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+           loadMsg.textContent = '⏳ Descargando datos desde GitHub por primera vez...';
+           document.body.appendChild(loadMsg);
+
+           const r = await sincronizarDesdeGitHub();
+           
+           // Quitamos el aviso de carga
+           loadMsg.remove();
+
+           if(r.ok) {
+               // Mostramos el alert de éxito con las cantidades reales
+               alert(`✅ ¡Datos cargados satisfactoriamente!\n\n` + 
+                     `Atletas nuevos: ${r.nuevos}\n` +
+                     `Atletas actualizados: ${r.actualizados}\n` +
+                     `Pagos nuevos: ${r.pagosNuevos}`);
+               refrescarAdmin(); // Refrescamos por si acaso
+           } else {
+               alert(`⚠️ La aplicación se abrió, pero no se pudo conectar con GitHub automáticamente.\n\nError: ${r.error}\n\nPor favor, revisa tu conexión a internet.`);
+           }
+       }, 1000); 
+    }
   }catch(e){
     console.error(e);
     document.body.innerHTML = '<div class="card"><h1>Error</h1><p class="muted">'+e.message+'</p></div>';
