@@ -84,13 +84,11 @@
 <body>
 <div class="wrap">
 
-  <!-- SPLASH -->
   <div id="view-loading" class="card center">
     <h1>AtletaDeudas</h1>
     <p class="muted">Cargando base de datos…</p>
   </div>
 
-  <!-- LOGIN -->
   <div id="view-login" class="card hidden">
     <h1>AtletaDeudas</h1>
     <p class="muted">Control de aportes y pagos</p>
@@ -108,7 +106,6 @@
     <div id="sync-login-msg" class="msg"></div>
   </div>
 
-  <!-- ATLETA -->
   <div id="view-atleta" class="hidden">
     <div class="card">
       <div class="row" style="align-items:center">
@@ -135,7 +132,6 @@
       <div id="sync-atleta-msg" class="msg"></div>
     </div>
 
-    <!-- BLOQUE 6.6: Reportar aporte -->
     <div id="card-reportar-aporte" class="card">
       <h2>💸 Reportar mi aporte</h2>
       <p class="muted small" style="margin:0 0 10px">
@@ -176,7 +172,6 @@
     </div>
   </div>
 
-  <!-- ADMIN -->
   <div id="view-admin" class="hidden">
     <div class="card">
       <div class="row" style="align-items:center">
@@ -190,7 +185,6 @@
       </div>
     </div>
 
-    <!-- TAB ATLETAS -->
     <div id="tab-atletas" class="tab">
       <div class="card">
         <h2>Agregar / editar atleta</h2>
@@ -258,9 +252,7 @@
       </div>
     </div>
 
-    <!-- TAB PAGOS -->
     <div id="tab-pagos" class="tab hidden">
-
       <div class="card">
         <h2>⏳ Pagos pendientes por verificar</h2>
         <div id="lista-pagos-pendientes">
@@ -327,7 +319,6 @@
       </div>
     </div>
 
-    <!-- TAB CONFIG -->
     <div id="tab-config" class="tab hidden">
       <div class="card">
         <h2>Configuración general</h2>
@@ -338,7 +329,8 @@
           <div><label>Moneda</label><input id="c-moneda" /></div>
           <div><label>Tasa USD (Bs)</label><input id="c-tasa-dolar" type="number" step="0.0001" /></div>
           <div><label>Clave admin</label><input id="c-clave-admin" /></div>
-          <div><label>Fecha corte quincena</label><input id="c-fecha-corte" type="date" /></div>
+          <!-- MOD: label aclaratorio (era "Fecha corte quincena") -->
+          <div><label>Fecha inicio de deuda</label><input id="c-fecha-corte" type="date" min="2026-01-01" /></div>
         </div>
         <div class="row mt12">
           <button id="btn-guardar-config">Guardar configuración</button>
@@ -433,16 +425,16 @@ function obtenerQuincenasDelMes(anio, mes) {
 }
 
 function calcularNumeroQuincena(fechaQ){
-  const corte = getConfig('fecha_corte_quincena','2026-09-30');
+  const corte = getConfig('fecha_corte_quincena','2026-09-29'); // MOD: 2026-09-29
   if(!fechaQ || fechaQ < corte) return null;
-  
+
   const [anioC, mesC, diaC] = corte.split('-').map(Number);
   const [anioF, mesF, diaF] = fechaQ.split('-').map(Number);
-  
+
   let contador = 0;
   let anio = anioC;
   let mes = mesC - 1; // Ajustar a índice 0
-  
+
   while (true) {
     const quincenas = obtenerQuincenasDelMes(anio, mes);
     for (const qDia of quincenas) {
@@ -460,16 +452,16 @@ function calcularNumeroQuincena(fechaQ){
 
 function quincenaActualNumero(){
   const hoy = hoyISO();
-  const corte = getConfig('fecha_corte_quincena', '2026-09-30');
+  const corte = getConfig('fecha_corte_quincena', '2026-09-29'); // MOD: 2026-09-29
   if(hoy < corte) return 0;
-  
+
   const [anioC, mesC, diaC] = corte.split('-').map(Number);
   const [anioH, mesH, diaH] = hoy.split('-').map(Number);
-  
+
   let contador = 0;
   let anio = anioC;
-  let mes = mesC - 1; 
-  
+  let mes = mesC - 1;
+
   while (true) {
     const quincenas = obtenerQuincenasDelMes(anio, mes);
     for (const qDia of quincenas) {
@@ -485,16 +477,28 @@ function quincenaActualNumero(){
   return contador;
 }
 
+// MOD: fechaQuincenaActual ya no devuelve fechas futuras.
+// Si hoy está antes de la primera quincena del mes, retrocede al mes anterior.
+// Si hoy es anterior al corte, devuelve la fecha de corte.
 function fechaQuincenaActual(){
   const hoy = hoyISO();
-  const [anio, mes, dia] = hoy.split('-').map(Number);
+  const corte = getConfig('fecha_corte_quincena', '2026-09-29'); // MOD: 2026-09-29
+  if(hoy < corte) return corte;
+
+  const [anio, mes] = hoy.split('-').map(Number);
   const quincenas = obtenerQuincenasDelMes(anio, mes - 1);
-  
   for (let i = quincenas.length - 1; i >= 0; i--) {
     const fechaQ = `${anio}-${String(mes).padStart(2,'0')}-${String(quincenas[i]).padStart(2,'0')}`;
     if (fechaQ <= hoy) return fechaQ;
   }
-  return `${anio}-${String(mes).padStart(2,'0')}-15`;
+
+  // Hoy es antes de la primera quincena del mes → retroceder un mes
+  let mp = mes - 1, ap = anio;
+  if (mp < 1) { mp = 12; ap--; }
+  const qp = obtenerQuincenasDelMes(ap, mp - 1);
+  const ultimo = qp[qp.length - 1];
+  const fechaPrev = `${ap}-${String(mp).padStart(2,'0')}-${String(ultimo).padStart(2,'0')}`;
+  return fechaPrev < corte ? corte : fechaPrev;
 }
 
 function showMsg(el, tipo, texto){ if(!el) return; el.className='msg show '+tipo; el.textContent=texto; }
@@ -681,7 +685,7 @@ function crearSchema(){
     clave_admin:'admin123', clave_generica:'123456',
     tasa_dolar:'36.50',
     tasa_bcv_fecha:'', tasa_bcv_actualizado:'',
-    fecha_corte_quincena:'2026-09-30',
+    fecha_corte_quincena:'2026-09-29', // MOD: fecha inicio de deuda
     numero_quincena_inicial:'1',
     schema_version:String(SCHEMA_VER),
     github_usuario:'', github_repo:'', github_ruta:'datos/atletas.json',
@@ -694,7 +698,7 @@ function crearSchema(){
   db.run(`CREATE UNIQUE INDEX IF NOT EXISTS uq_pago_ref
           ON pagos(atleta_id, metodo_pago_id, IFNULL(referencia,''), fecha)`);
 
-  console.log('✅ Esquema v2 listo (schema_version=4)');
+  console.log('✅ Esquema v2 listo (schema_version=4, corte=2026-09-29)');
 }
 
 /* ============================================================
@@ -859,9 +863,9 @@ function renderAtletas(){
                 (a.rep_tel ? ` · ${a.rep_tel}` : '');
     const m = calcularMoraAtleta(a.id);
     const d = calcularDeudaAtleta(a.id);
-    
+
     const deudaMostrar = d.total_bs;
-    
+
     const filaClase = (m.estado === 'no_practica') ? 'fila-no-practica' : '';
     return `<tr class="${filaClase}">
       <td>${a.identificacion||''}</td>
@@ -1231,7 +1235,7 @@ function registrarPago(){
     return showMsg(msg,'err','Complete atleta, método, fechas y monto.');
   }
 
-  const corte = getConfig('fecha_corte_quincena','2026-09-30');
+  const corte = getConfig('fecha_corte_quincena','2026-09-29'); // MOD: 2026-09-29
   if(fechaQ < corte){
     return showMsg(msg,'err',`La fecha de quincena no puede ser anterior al corte (${corte}).`);
   }
@@ -1249,7 +1253,6 @@ function registrarPago(){
   }
 
   try{
-    // 1. Insertamos el pago base
     db.run(`INSERT INTO pagos(atleta_id,metodo_pago_id,fecha,fecha_quincena,numero_quincena,
             monto,moneda,monto_bs_original,tasa,referencia,banco_origen,telefono_origen,
             observacion,estado,pendiente_subir)
@@ -1259,30 +1262,27 @@ function registrarPago(){
        ref, $('banco_origen').value.trim(), $('telefono_origen').value.trim(),
        $('observacion').value.trim(), estado]);
 
-    // 2. Si es PAGADO, calculamos y descontamos quincenas extras
     if(estado==='pagado'){
       const montoQuincena = Number(getConfig('monto_quincena','5')) || 5;
       const cantQuincenas = Math.floor(monto / montoQuincena);
-      
+
       const r = resumenDeudaAtleta(atletaId);
-      const quincenasDebidas = r.debidas_nums; 
+      const quincenasDebidas = r.debidas_nums;
 
       let restantes = cantQuincenas - 1;
       for (let i = 1; i < quincenasDebidas.length && restantes > 0; i++) {
-        // Insertamos un pago de ajuste de 0 Bs para marcar la quincena como saldada
-        db.run(`INSERT INTO pagos(atleta_id, monto, fecha, numero_quincena, estado, pendiente_subir) 
+        db.run(`INSERT INTO pagos(atleta_id, monto, fecha, numero_quincena, estado, pendiente_subir)
                 VALUES(?, 0, date('now'), ?, 'pagado', 1)`, [atletaId, quincenasDebidas[i]]);
         restantes--;
       }
-      
-      // Descontar deuda manual
+
       db.run(`UPDATE atletas SET deuda = MAX(0, deuda - ?) WHERE id=?`, [monto, atletaId]);
     }
 
     guardarBDEnIDB();
     renderPagos(); renderAtletas();
     limpiarFormPago();
-    
+
     if(estado === 'pagado'){
       const cant = Math.floor(monto / (Number(getConfig('monto_quincena','5')) || 5));
       showMsg(msg,'ok',`Pago registrado. Se saldaron ${cant > 0 ? cant : 1} quincena(s).`);
@@ -1358,39 +1358,34 @@ function aprobarPago(pagoId){
       return;
     }
 
-    // 1. Calcular cuántas quincenas cubre este monto
     const montoQuincena = Number(getConfig('monto_quincena','5')) || 5;
     const cantQuincenas = Math.floor(Number(p.monto) / montoQuincena);
-    
-    // 2. Buscar cuáles son las quincenas que debe el atleta (de la más vieja a la más nueva)
-    const r = resumenDeudaAtleta(p.atleta_id);
-    const quincenasDebidas = r.debidas_nums; 
 
-    // 3. Asignar el pago a la primera quincena debida
+    const r = resumenDeudaAtleta(p.atleta_id);
+    const quincenasDebidas = r.debidas_nums;
+
     if (quincenasDebidas.length > 0) {
       db.run(`UPDATE pagos SET estado='pagado', numero_quincena=? WHERE id=?`, [quincenasDebidas[0], pagoId]);
     } else {
       db.run(`UPDATE pagos SET estado='pagado' WHERE id=?`, [pagoId]);
     }
 
-    // 4. Si el monto cubre más quincenas, crear pagos de ajuste (monto 0) para saldar el resto
     let restantes = cantQuincenas - 1;
     for (let i = 1; i < quincenasDebidas.length && restantes > 0; i++) {
-      db.run(`INSERT INTO pagos(atleta_id, monto, fecha, numero_quincena, estado, pendiente_subir) 
+      db.run(`INSERT INTO pagos(atleta_id, monto, fecha, numero_quincena, estado, pendiente_subir)
               VALUES(?, 0, date('now'), ?, 'pagado', 1)`, [p.atleta_id, quincenasDebidas[i]]);
       restantes--;
     }
 
-    // 5. Descontar la deuda manual (atletas.deuda) por el monto total recibido
     db.run(`UPDATE atletas SET deuda = MAX(0, deuda - ?) WHERE id=?`, [Number(p.monto)||0, p.atleta_id]);
-    
+
     guardarBDEnIDB();
 
     renderPagosPendientes();
     renderPagos();
     renderAtletas();
     if(usuarioActual && usuarioActual.rol === 'admin') refrescarAdmin();
-    
+
     alert(`✅ Pago aprobado. Cubrió ${cantQuincenas > 0 ? cantQuincenas : 1} quincena(s). La mora fue actualizada.`);
 
     subirAGitHub().catch(err=>console.warn('Sync post-aprobación:', err));
@@ -1463,7 +1458,9 @@ async function subirAGitHub(){
     atletas: atletas.map(a=>({
       cedula: String(a.identificacion||''),
       nombre: a.p_nombre||'', apellido: a.p_apellido||'',
-      deuda: Number(a.deuda)||0, activo: Number(a.activo)??1,
+      deuda: Number(a.deuda)||0,
+      // MOD: ?? no captura NaN
+      activo: (a.activo == null ? 1 : (Number(a.activo) || 0)),
       categoria: a.categoria||'', escuela: a.escuela||'',
       representante: {
         cedula: a.rep_id||'', nombre: a.rep_nombre||'', apellido: a.rep_apellido||'',
@@ -1551,18 +1548,20 @@ async function sincronizarDesdeGitHub(){
       repId = r?.id || null;
     }
     const existente = one('SELECT id FROM atletas WHERE identificacion=?', [ced]);
+    // MOD: ?? no captura NaN → forzamos default 1 si viene ausente
+    const activoVal = (a.activo == null ? 1 : (Number(a.activo) || 0));
     if(existente){
       db.run(`UPDATE atletas SET p_nombre=?, p_apellido=?, categoria=?, escuela=?,
               representante_id=?, deuda=?, activo=? WHERE id=?`,
         [a.nombre||'', a.apellido||'', a.categoria||'', a.escuela||'',
-         repId, Number(a.deuda)||0, Number(a.activo)??1, existente.id]);
+         repId, Number(a.deuda)||0, activoVal, existente.id]);
       actualizados++;
     } else {
       const clave = clavePorDefecto(ced);
       db.run(`INSERT INTO atletas(identificacion,p_nombre,p_apellido,categoria,escuela,
               representante_id,clave,deuda,activo) VALUES(?,?,?,?,?,?,?,?,?)`,
         [ced, a.nombre||'', a.apellido||'', a.categoria||'', a.escuela||'',
-         repId, clave, Number(a.deuda)||0, Number(a.activo)??1]);
+         repId, clave, Number(a.deuda)||0, activoVal]);
       nuevos++;
     }
   }
@@ -1732,7 +1731,7 @@ function refrescarAdmin(){
   $('c-moneda').value = getConfig('moneda','USD');
   $('c-tasa-dolar').value = getConfig('tasa_dolar','36.50');
   $('c-clave-admin').value = getConfig('clave_admin','admin123');
-  $('c-fecha-corte').value = getConfig('fecha_corte_quincena','2026-09-30');
+  $('c-fecha-corte').value = getConfig('fecha_corte_quincena','2026-09-29'); // MOD
   $('c-gh-user').value = getConfig('github_usuario','');
   $('c-gh-repo').value = getConfig('github_repo','');
   $('c-gh-ruta').value = getConfig('github_ruta','datos/atletas.json');
@@ -1890,6 +1889,14 @@ async function init(){
     limpiarFormAtleta();
     limpiarFormPago();
     mostrarVista('view-login');
+
+    // MOD: obtener tasa BCV al arrancar (silencioso) y re-renderizar si hay sesión
+    actualizarTasaBCV(true)
+      .then(()=>{
+        if(usuarioActual && usuarioActual.rol === 'admin') refrescarAdmin();
+        else if(usuarioActual && usuarioActual.id) renderVistaAtleta();
+      })
+      .catch(err=>console.warn('Tasa BCV inicial:', err));
   }catch(e){
     console.error(e);
     document.body.innerHTML = '<div class="card"><h1>Error</h1><p class="muted">'+e.message+'</p></div>';
