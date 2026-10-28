@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-10-28T15:56:48.271Z",
+  "actualizado": "2026-10-28T15:57:47.669Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -552,7 +552,7 @@
       "cedula": "34671276",
       "fecha": "2026-10-28",
       "fecha_quincena": "2026-10-15",
-      "numero_quincena": 2,
+      "numero_quincena": 1,
       "monto": 4442,
       "moneda": "USD",
       "monto_bs": 0,
@@ -561,7 +561,7 @@
       "referencia": "",
       "banco_origen": "",
       "telefono_origen": "",
-      "estado": "pendiente"
+      "estado": "pagado"
     }
   ]
 }
