@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "actualizado": "2026-10-27T12:00:00Z",
+  "version": 3,
+  "actualizado": "2026-10-28T00:00:00Z",
   "atletas": [
     { "cedula": "34671276", "nombre": "NICOL", "apellido": "ALCALÁ", "deuda": 0, "activo": 1, "categoria": "CADETE", "escuela": "Club Aves Voladoras", "representante": { "cedula": "22920830", "nombre": "MARIELVIS", "apellido": "ALCALÁ", "telefono": "04142920995", "email": "", "parentesco": "" } },
     { "cedula": "36365112", "nombre": "Leiximar", "apellido": "Alvarez", "deuda": 0, "activo": 1, "categoria": "PRE-INFANTIL", "escuela": "Club Aves Voladoras", "representante": { "cedula": "12261558", "nombre": "Mary", "apellido": "Alvarez", "telefono": "04241510442", "email": "", "parentesco": "" } },
@@ -25,7 +25,7 @@
     { "cedula": "33625820", "nombre": "Nichooll", "apellido": "Ramos", "deuda": 0, "activo": 1, "categoria": "JUVENIL", "escuela": "Club Aves Voladoras", "representante": { "cedula": "11903218", "nombre": "Janeth", "apellido": "Ramos", "telefono": "04128065269", "email": "", "parentesco": "" } },
     { "cedula": "11903218-1", "nombre": "Valeria", "apellido": "Ramos", "deuda": 0, "activo": 1, "categoria": "BENJAMÍN", "escuela": "Club Aves Voladoras", "representante": { "cedula": "11903218", "nombre": "Janeth", "apellido": "Ramos", "telefono": "04128065269", "email": "", "parentesco": "" } },
     { "cedula": "19650993-1", "nombre": "Charlotte", "apellido": "Rodríguez", "deuda": 0, "activo": 1, "categoria": "BENJAMÍN", "escuela": "Club Aves Voladoras", "representante": { "cedula": "19650993", "nombre": "Yoselin", "apellido": "Aponte", "telefono": "04242980356", "email": "", "parentesco": "" } },
-    { "cedula": "34065424", "nombre": "Aranza", "apellido": "Rondón", "deuda": 0, "activo": 1, "categoria": "", "escuela": "Club Aves Voladoras", "representante": { "cedula": "18711077", "nombre": "Monica", "apellido": "Rondó", "telefono": "0404242145614", "email": "", "parentesco": "" } },
+    { "cedula": "34065424", "nombre": "Aranza", "apellido": "Rondón", "deuda": 0, "activo": 1, "categoria": "", "escuela": "Club Aves Voladoras", "representante": { "cedula": "18711077", "nombre": "Monica", "apellido": "Rondó", "telefono": "04242421456", "email": "", "parentesco": "" } },
     { "cedula": "37221581", "nombre": "Leoriana", "apellido": "Ruiz", "deuda": 0, "activo": 1, "categoria": "PRE-INFANTIL", "escuela": "Club Aves Voladoras", "representante": { "cedula": "12811822", "nombre": "Iris", "apellido": "Ruiz", "telefono": "04243556029", "email": "", "parentesco": "" } },
     { "cedula": "33230161", "nombre": "YULIANNI", "apellido": "SALCEDO", "deuda": 0, "activo": 1, "categoria": "JUVENIL", "escuela": "Club Aves Voladoras", "representante": { "cedula": "18440687", "nombre": "MARÍA", "apellido": "LINARES", "telefono": "04242805713", "email": "", "parentesco": "" } },
     { "cedula": "32919459", "nombre": "MARIAMNER", "apellido": "SANZ", "deuda": 0, "activo": 1, "categoria": "JUVENIL", "escuela": "Club Aves Voladoras", "representante": { "cedula": "15931381", "nombre": "SHEILA", "apellido": "PACHECO", "telefono": "04120970611", "email": "", "parentesco": "" } },
