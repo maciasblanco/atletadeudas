@@ -1,15 +1,20 @@
-const CACHE = 'atletadeudas-v5';
+const CACHE = 'atletadeudas-v7';
 
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.json',
-  './launchericon-48x48.png',
-  './launchericon-72x72.png',
-  './launchericon-96x96.png',
-  './launchericon-144x144.png',
-  './launchericon-192x192.png',
-  './launchericon-512x512.png',
+  // Rutas actualizadas a la carpeta icons
+  './icons/launchericon-48x48.png',
+  './icons/launchericon-72x72.png',
+  './icons/launchericon-96x96.png',
+  './icons/launchericon-144x144.png',
+  './icons/launchericon-192x192.png',
+  './icons/launchericon-512x512.png',
+  // Capturas de pantalla (si las subes a la carpeta icons)
+  './icons/screenshot-mobile.png',
+  './icons/screenshot-desktop.png',
+  // Librerías externas
   'https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/sql-wasm.js',
   'https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/sql-wasm.wasm'
 ];
