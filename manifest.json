@@ -2,37 +2,37 @@
   "name": "AtletaDeudas — Control de aportes y pagos",
   "short_name": "AtletaDeudas",
   "description": "Control de aportes, representantes y pagos para atletas, offline-first con GitHub como almacén remoto.",
-  "start_url": "/atletadeudas/index.html",
-  "scope": "/atletadeudas/",
+  "start_url": "./index.html",
+  "scope": "./",
   "id": "/atletadeudas/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0b1220",
-  "theme_color": "#0b1220",
+  "background_color": "#080d1a",
+  "theme_color": "#080d1a",
   "lang": "es",
   "dir": "ltr",
   "categories": ["finance", "productivity", "sports"],
   "icons": [
     {
-      "src": "/atletadeudas/icons/launchericon-192x192.png",
+      "src": "icons/launchericon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/atletadeudas/icons/launchericon-512x512.png",
+      "src": "icons/launchericon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/atletadeudas/icons/launchericon-192x192.png",
+      "src": "icons/launchericon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/atletadeudas/icons/launchericon-512x512.png",
+      "src": "icons/launchericon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

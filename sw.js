@@ -1,15 +1,17 @@
-const CACHE = 'atletadeudas-v11';
+const CACHE = 'atletadeudas-v14';
 
 const APP_SHELL = [
-  '/atletadeudas/',
-  '/atletadeudas/index.html',
-  '/atletadeudas/manifest.json',
-  '/atletadeudas/icons/launchericon-48x48.png',
-  '/atletadeudas/icons/launchericon-72x72.png',
-  '/atletadeudas/icons/launchericon-96x96.png',
-  '/atletadeudas/icons/launchericon-144x144.png',
-  '/atletadeudas/icons/launchericon-192x192.png',
-  '/atletadeudas/icons/launchericon-512x512.png',
+  './',
+  './index.html',
+  './manifest.json',
+  './styles.css',
+  './app.js',
+  './icons/launchericon-48x48.png',
+  './icons/launchericon-72x72.png',
+  './icons/launchericon-96x96.png',
+  './icons/launchericon-144x144.png',
+  './icons/launchericon-192x192.png',
+  './icons/launchericon-512x512.png',
   'https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/sql-wasm.js',
   'https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/sql-wasm.wasm'
 ];
@@ -35,10 +37,8 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   const url = new URL(req.url);
 
-  // Nunca cachear la API de GitHub (siempre red)
   if (url.hostname === 'api.github.com') return;
 
-  // JSON público de GitHub: network-first con fallback a cache
   if (url.hostname === 'raw.githubusercontent.com') {
     e.respondWith(
       fetch(req, { cache: 'no-store' })
@@ -52,8 +52,28 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // App shell: cache-first
   if (req.method === 'GET') {
+    const esAppShell = 
+      url.pathname.endsWith('/index.html') ||
+      url.pathname.endsWith('/styles.css') ||
+      url.pathname.endsWith('/app.js') ||
+      url.pathname.endsWith('/manifest.json') ||
+      url.pathname.endsWith('/') ||
+      url.pathname.includes('/icons/');
+
+    if (esAppShell) {
+      e.respondWith(
+        fetch(req)
+          .then(r => {
+            const copy = r.clone();
+            caches.open(CACHE).then(c => c.put(req, copy));
+            return r;
+          })
+          .catch(() => caches.match(req))
+      );
+      return;
+    }
+
     e.respondWith(
       caches.match(req).then(hit => {
         if (hit) return hit;
@@ -61,7 +81,7 @@ self.addEventListener('fetch', (e) => {
           const copy = r.clone();
           caches.open(CACHE).then(c => c.put(req, copy));
           return r;
-        }).catch(() => caches.match('/atletadeudas/index.html'));
+        }).catch(() => caches.match('./index.html'));
       })
     );
   }
