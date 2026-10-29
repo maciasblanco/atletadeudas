@@ -325,7 +325,7 @@ function crearSchema(){
     github_repo:'atletadeudas', 
     github_ruta:'datos/atletas.json',
     github_rama:'main', 
-    github_token:'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'
+    github_token:'' /* TOKEN ELIMINADO POR SEGURIDAD */
   };
   for(const [k,v] of Object.entries(defaults)){
     if(getConfig(k)===null) setConfig(k,v);
@@ -1359,10 +1359,7 @@ function refrescarAdmin(){
   renderPagos();
   cargarMetodosEnSelect();
   cargarAtletasEnSelectPago();
-  $('c-monto-semanal').value = getConfig('monto_semanal','5');
-  $('c-monto-periodo').value = getConfig('monto_periodo','20');
   $('c-monto-quincena').value = getConfig('monto_quincena','5');
-  $('c-moneda').value = getConfig('moneda','USD');
   $('c-tasa-dolar').value = getConfig('tasa_dolar','36.50');
   $('c-clave-admin').value = getConfig('clave_admin','admin123');
   $('c-fecha-corte').value = getConfig('fecha_corte_quincena','2026-09-29'); 
@@ -1405,54 +1402,62 @@ function refrescarAdmin(){
    Eventos
    ============================================================ */
 function wireEvents(){
-  $('btn-login-atleta').onclick = loginAtleta;
-  $('btn-login-admin').onclick  = loginAdmin;
-  $('btn-logout-atleta').onclick = ()=>{ usuarioActual=null; mostrarVista('view-login'); };
-  $('btn-logout-admin').onclick  = ()=>{ usuarioActual=null; mostrarVista('view-login'); };
-  $('btn-ver-pagos').onclick = ()=> $('atleta-pagos-card').classList.toggle('hidden');
+  const on = (id, fn) => { const el = $(id); if(el) el.onclick = fn; };
+  const onEvent = (id, evt, fn) => { const el = $(id); if(el) el.addEventListener(evt, fn); };
 
-  $('btn-reportar-aporte').onclick = reportarAporteAtleta;
+  on('btn-login-atleta', loginAtleta);
+  on('btn-login-admin', loginAdmin);
+  on('btn-logout-atleta', ()=>{ usuarioActual=null; mostrarVista('view-login'); });
+  on('btn-logout-admin', ()=>{ usuarioActual=null; mostrarVista('view-login'); });
+  on('btn-ver-pagos', ()=> $('atleta-pagos-card').classList.toggle('hidden'));
+
+  on('btn-reportar-aporte', reportarAporteAtleta);
 
   document.querySelectorAll('#admin-tabs button').forEach(b=>{
     b.onclick = ()=>{
       document.querySelectorAll('#admin-tabs button').forEach(x=>x.classList.remove('active'));
       b.classList.add('active');
       ['atletas','pagos','config'].forEach(t=>{
-        $('tab-'+t).classList.toggle('hidden', t!==b.dataset.tab);
+        const tabEl = $('tab-'+t);
+        if(tabEl) tabEl.classList.toggle('hidden', t!==b.dataset.tab);
       });
       if(b.dataset.tab === 'pagos') renderPagosPendientes();
     };
   });
 
-  $('form-atleta').onsubmit = (e)=>{ e.preventDefault(); guardarAtleta(); };
-  $('btn-limpiar-atleta').onclick = limpiarFormAtleta;
-  $('buscar-atleta').oninput = renderAtletas;
+  const formAtleta = $('form-atleta'); 
+  if(formAtleta) formAtleta.onsubmit = (e)=>{ e.preventDefault(); guardarAtleta(); };
+  
+  on('btn-limpiar-atleta', limpiarFormAtleta);
+  
+  const buscarAtleta = $('buscar-atleta');
+  if(buscarAtleta) buscarAtleta.oninput = renderAtletas;
 
-  $('form-pago').onsubmit = (e)=>{ e.preventDefault(); registrarPago(); };
-  $('btn-limpiar-pago').onclick = limpiarFormPago;
-  $('fecha_quincena').addEventListener('change', ()=>{
+  const formPago = $('form-pago');
+  if(formPago) formPago.onsubmit = (e)=>{ e.preventDefault(); registrarPago(); };
+  
+  on('btn-limpiar-pago', limpiarFormPago);
+  
+  onEvent('fecha_quincena', 'change', ()=>{
     actualizarNumeroQuincena();
     actualizarCoberturaPago();
   });
-  $('monto').addEventListener('input', actualizarCoberturaPago);
-  $('pago_atleta').addEventListener('change', renderResumenPagoAdmin);
+  onEvent('monto', 'input', actualizarCoberturaPago);
+  onEvent('pago_atleta', 'change', renderResumenPagoAdmin);
 
-  $('btn-guardar-config').onclick = ()=>{
-    setConfig('monto_semanal', $('c-monto-semanal').value);
-    setConfig('monto_periodo', $('c-monto-periodo').value);
+  on('btn-guardar-config', ()=>{
     setConfig('monto_quincena', $('c-monto-quincena').value);
-    setConfig('moneda', $('c-moneda').value);
     setConfig('tasa_dolar', $('c-tasa-dolar').value);
     setConfig('clave_admin', $('c-clave-admin').value);
     setConfig('fecha_corte_quincena', $('c-fecha-corte').value);
     guardarBDEnIDB();
     showMsg($('config-msg'),'ok','Configuración guardada.');
     refrescarAdmin();
-  };
+  });
 
-  $('btn-tasa-bcv').onclick = ()=> actualizarTasaBCV(false);
+  on('btn-tasa-bcv', ()=> actualizarTasaBCV(false));
 
-  $('btn-guardar-gh').onclick = ()=>{
+  on('btn-guardar-gh', ()=>{
     setConfig('github_usuario', $('c-gh-user').value.trim());
     setConfig('github_repo', $('c-gh-repo').value.trim());
     setConfig('github_ruta', $('c-gh-ruta').value.trim()||'datos/atletas.json');
@@ -1460,46 +1465,48 @@ function wireEvents(){
     setConfig('github_token', $('c-gh-token').value.trim());
     guardarBDEnIDB();
     showMsg($('gh-msg'),'ok','GitHub guardado.');
-  };
-  $('btn-subir-gh').onclick = async ()=>{
+  });
+  on('btn-subir-gh', async ()=>{
     showMsg($('gh-msg'),'info','Subiendo…');
     const r = await subirAGitHub();
     if(r.ok) showMsg($('gh-msg'),'ok',`Subido OK (${r.nAtletas} atletas, ${r.nPagos} pagos).`);
     else showMsg($('gh-msg'),'err', r.error);
     refrescarAdmin();
-  };
-  $('btn-bajar-gh').onclick = async ()=>{
+  });
+  on('btn-bajar-gh', async ()=>{
     showMsg($('gh-msg'),'info','Sincronizando…');
     const r = await sincronizarDesdeGitHub();
     if(r.ok){
       showMsg($('gh-msg'),'ok',`OK. Nuevos: ${r.nuevos}, Actualizados: ${r.actualizados}, Pagos nuevos: ${r.pagosNuevos}`);
       refrescarAdmin();
     } else showMsg($('gh-msg'),'err', r.error);
-  };
+  });
 
-  $('btn-sync-login').onclick = async ()=>{
+  on('btn-sync-login', async ()=>{
     showMsg($('sync-login-msg'),'info','Sincronizando…');
     const r = await sincronizarDesdeGitHub();
     if(r.ok) showMsg($('sync-login-msg'),'ok',`OK. Nuevos: ${r.nuevos}, Actualizados: ${r.actualizados}`);
     else showMsg($('sync-login-msg'),'err', r.error);
-  };
-  $('btn-sync-atleta').onclick = async ()=>{
+  });
+  on('btn-sync-atleta', async ()=>{
     showMsg($('sync-atleta-msg'),'info','Sincronizando…');
     const r = await sincronizarDesdeGitHub();
     if(r.ok){ showMsg($('sync-atleta-msg'),'ok','Sincronizado.'); renderVistaAtleta(); }
     else showMsg($('sync-atleta-msg'),'err', r.error);
-  };
+  });
 
-  $('btn-respaldar').onclick = ()=>{
+  on('btn-respaldar', ()=>{
     const data = db.export();
     const blob = new Blob([data], {type:'application/octet-stream'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `atletadeudas_${hoyISO()}.sqlite`;
     a.click();
-  };
-  $('btn-restaurar').onclick = ()=> $('file-restaurar').click();
-  $('file-restaurar').onchange = async (e)=>{
+  });
+  on('btn-restaurar', ()=> { const f = $('file-restaurar'); if(f) f.click(); });
+  
+  const fileRest = $('file-restaurar');
+  if(fileRest) fileRest.onchange = async (e)=>{
     const f = e.target.files[0]; if(!f) return;
     const buf = new Uint8Array(await f.arrayBuffer());
     db = new SQL.Database(buf);
