@@ -1,20 +1,15 @@
-const CACHE = 'atletadeudas-v7';
+const CACHE = 'atletadeudas-v10';
 
 const APP_SHELL = [
-  './',
-  './index.html',
-  './manifest.json',
-  // Rutas actualizadas a la carpeta icons
-  './icons/launchericon-48x48.png',
-  './icons/launchericon-72x72.png',
-  './icons/launchericon-96x96.png',
-  './icons/launchericon-144x144.png',
-  './icons/launchericon-192x192.png',
-  './icons/launchericon-512x512.png',
-  // Capturas de pantalla (si las subes a la carpeta icons)
-  './icons/screenshot-mobile.png',
-  './icons/screenshot-desktop.png',
-  // Librerías externas
+  '/atletadeudas/',
+  '/atletadeudas/index.html',
+  '/atletadeudas/manifest.json',
+  '/atletadeudas/icons/launchericon-48x48.png',
+  '/atletadeudas/icons/launchericon-72x72.png',
+  '/atletadeudas/icons/launchericon-96x96.png',
+  '/atletadeudas/icons/launchericon-144x144.png',
+  '/atletadeudas/icons/launchericon-192x192.png',
+  '/atletadeudas/icons/launchericon-512x512.png',
   'https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/sql-wasm.js',
   'https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/sql-wasm.wasm'
 ];
@@ -66,7 +61,7 @@ self.addEventListener('fetch', (e) => {
           const copy = r.clone();
           caches.open(CACHE).then(c => c.put(req, copy));
           return r;
-        }).catch(() => caches.match('./index.html'));
+        }).catch(() => caches.match('/atletadeudas/index.html'));
       })
     );
   }

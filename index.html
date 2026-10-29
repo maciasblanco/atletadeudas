@@ -394,6 +394,26 @@ let usuarioActual = null;
 let GH_RAW = '';
 let tasaBCVFecha = '';
 
+/* ============================================================
+   DETECCIÓN DE PUPPETEER (para no colgar PWABuilder)
+   ============================================================ */
+const ES_PUPPETEER = navigator.webdriver === true;
+
+function avisar(msg){
+  if(ES_PUPPETEER){
+    console.log('[PWA/avisar]', msg);
+  } else {
+    alert(msg);
+  }
+}
+function confirmar(msg){
+  if(ES_PUPPETEER){
+    console.log('[PWA/confirmar]', msg, '→ auto: true');
+    return true;
+  }
+  return confirm(msg);
+}
+
 /* ---------- Utilidades ---------- */
 const $ = (id)=>document.getElementById(id);
 const hoyISO = ()=> new Date().toISOString().slice(0,10);
@@ -682,7 +702,6 @@ function crearSchema(){
     fecha_corte_quincena:'2026-09-29',
     numero_quincena_inicial:'1',
     schema_version:String(SCHEMA_VER),
-    // 👇 SOLUCIÓN DEFINITIVA: CONFIGURACIÓN INYECTADA AQUÍ
     github_usuario:'maciasblanco', 
     github_repo:'atletadeudas', 
     github_ruta:'datos/atletas.json',
@@ -1348,11 +1367,11 @@ function reportarAporteAtleta(){
    Aprobar / Rechazar (Admin)
    ============================================================ */
 function aprobarPago(pagoId){
-  if(!confirm('¿Confirmas que el aporte fue recibido? Se descontarán todas las quincenas que cubra este monto.')) return;
+  if(!confirmar('¿Confirmas que el aporte fue recibido? Se descontarán todas las quincenas que cubra este monto.')) return;
   try{
     const p = one(`SELECT id, atleta_id, monto FROM pagos WHERE id=? AND estado='pendiente'`, [pagoId]);
     if(!p){
-      alert('El pago no existe o ya fue procesado.');
+      avisar('El pago no existe o ya fue procesado.');
       return;
     }
 
@@ -1384,21 +1403,21 @@ function aprobarPago(pagoId){
     renderAtletas();
     if(usuarioActual && usuarioActual.rol === 'admin') refrescarAdmin();
 
-    alert(`✅ Pago aprobado. Cubrió ${cantQuincenas > 0 ? cantQuincenas : 1} quincena(s). La mora fue actualizada.`);
+    avisar(`✅ Pago aprobado. Cubrió ${cantQuincenas > 0 ? cantQuincenas : 1} quincena(s). La mora fue actualizada.`);
 
     subirAGitHub().catch(err=>console.warn('Sync post-aprobación:', err));
   }catch(e){
     console.error('Error aprobando pago:', e);
-    alert('❌ Error al aprobar: '+e.message);
+    avisar('❌ Error al aprobar: '+e.message);
   }
 }
 
 function rechazarPago(pagoId){
-  if(!confirm('¿Rechazar y eliminar este aporte? Esta acción no se puede deshacer.')) return;
+  if(!confirmar('¿Rechazar y eliminar este aporte? Esta acción no se puede deshacer.')) return;
   try{
     const p = one(`SELECT id FROM pagos WHERE id=? AND estado='pendiente'`, [pagoId]);
     if(!p){
-      alert('El pago no existe o ya fue procesado.');
+      avisar('El pago no existe o ya fue procesado.');
       return;
     }
     db.run(`DELETE FROM pagos WHERE id=? AND estado='pendiente'`, [pagoId]);
@@ -1408,12 +1427,12 @@ function rechazarPago(pagoId){
     renderPagos();
     renderAtletas();
     if(usuarioActual && usuarioActual.rol === 'admin') refrescarAdmin();
-    alert('❌ Aporte rechazado y eliminado.');
+    avisar('❌ Aporte rechazado y eliminado.');
 
     subirAGitHub().catch(err=>console.warn('Sync post-rechazo:', err));
   }catch(e){
     console.error('Error rechazando pago:', e);
-    alert('❌ Error al rechazar: '+e.message);
+    avisar('❌ Error al rechazar: '+e.message);
   }
 }
 
@@ -1875,6 +1894,11 @@ function wireEvents(){
 /* Init */
 async function init(){
   try{
+    // ⏱️ Delay defensivo para Puppeteer/PWABuilder (~800ms)
+    // Da tiempo a que el navegador headless registre SW + manifest
+    // antes de cargar sql.js (WASM pesado) y ejecutar crearSchema().
+    await new Promise(r => setTimeout(r, 800));
+
     SQL = await initSqlJs({ locateFile:f=>`https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/${f}` });
     const bytes = await idbGet(IDB_KEY);
     db = bytes ? new SQL.Database(bytes) : new SQL.Database();
@@ -1893,11 +1917,10 @@ async function init(){
       })
       .catch(err=>console.warn('Tasa BCV inicial:', err));
 
-    // 👇 SOLUCIÓN DEFINITIVA: Sincronización automática al abrir en un dispositivo nuevo
+    // Sincronización automática al abrir en un dispositivo nuevo
     if(!bytes){ 
        console.log('Primera vez en este dispositivo. Sincronizando automáticamente...');
        setTimeout(async () => {
-           // Mostramos un aviso temporal de que está cargando
            const loadMsg = document.createElement('div');
            loadMsg.id = 'load-alert';
            loadMsg.className = 'msg show info';
@@ -1913,18 +1936,16 @@ async function init(){
 
            const r = await sincronizarDesdeGitHub();
            
-           // Quitamos el aviso de carga
            loadMsg.remove();
 
            if(r.ok) {
-               // Mostramos el alert de éxito con las cantidades reales
-               alert(`✅ ¡Datos cargados satisfactoriamente!\n\n` + 
+               avisar(`✅ ¡Datos cargados satisfactoriamente!\n\n` + 
                      `Atletas nuevos: ${r.nuevos}\n` +
                      `Atletas actualizados: ${r.actualizados}\n` +
                      `Pagos nuevos: ${r.pagosNuevos}`);
-               refrescarAdmin(); // Refrescamos por si acaso
+               refrescarAdmin();
            } else {
-               alert(`⚠️ La aplicación se abrió, pero no se pudo conectar con GitHub automáticamente.\n\nError: ${r.error}\n\nPor favor, revisa tu conexión a internet.`);
+               avisar(`⚠️ La aplicación se abrió, pero no se pudo conectar con GitHub automáticamente.\n\nError: ${r.error}\n\nPor favor, revisa tu conexión a internet.`);
            }
        }, 1000); 
     }
@@ -1935,6 +1956,15 @@ async function init(){
 }
 
 window.addEventListener('load', init);
+</script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/atletadeudas/sw.js', { scope: '/atletadeudas/' })
+        .then(registration => console.log('SW registrado con éxito:', registration.scope))
+        .catch(err => console.log('Error al registrar SW:', err));
+    });
+  }
 </script>
 </body>
 </html>
