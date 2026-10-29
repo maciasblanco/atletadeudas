@@ -3,25 +3,37 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#0b1220" />
+<meta name="theme-color" content="#0a0f1c" />
 <title>AtletaDeudas — Control de aportes y pagos</title>
 <link rel="manifest" href="manifest.json" />
 <style>
   :root{
-    --bg:#0b1220; --card:#111c31; --card2:#0f1830; --line:#1e2a45;
-    --azul:#2563eb; --azul2:#1d4ed8; --ok:#10b981; --warn:#f59e0b; --err:#ef4444;
-    --txt:#e6ecff; --muted:#9aa7c7;
+    --bg:#0a0f1c; /* Azul noche más profundo */
+    --card:#131c31; /* Tarjetas con azul más claro */
+    --card2:#0d1526;
+    --line:#223354;
+    --azul:#3b82f6; /* Azul más brillante */
+    --azul2:#2563eb;
+    --ok:#10b981; --warn:#f59e0b; --err:#ef4444;
+    --txt:#f1f5f9; --muted:#94a3b8;
+    --oro:#fbbf24; /* Dorado para resaltar */
   }
   *{box-sizing:border-box}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+  html,body{
+    margin:0;padding:0;background:var(--bg);color:var(--txt);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    -webkit-tap-highlight-color:transparent}
-  body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
+    -webkit-tap-highlight-color:transparent
+  }
+  body{
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    background: linear-gradient(135deg, var(--bg) 0%, #060912 100%); /* Degradado sutil */
+    background-attachment: fixed;
+  }
   .wrap{max-width:720px;margin:0 auto;padding:16px}
   h1,h2,h3{margin:0 0 12px}
   h1{font-size:20px}
   h2{font-size:17px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); transition: transform 0.2s ease;}
   .card.sub{background:var(--card2)}
   .row{display:flex;gap:8px;flex-wrap:wrap}
   .row > *{flex:1 1 140px}
@@ -33,14 +45,20 @@
   }
   input:focus,select:focus,textarea:focus{border-color:var(--azul)}
   button{
-    background:var(--azul);color:#fff;border:0;border-radius:10px;padding:11px 14px;
-    font-weight:600;cursor:pointer
+    background: linear-gradient(180deg, var(--azul) 0%, var(--azul2) 100%);
+    color: #fff; border: none; border-radius: 10px; padding: 12px 16px;
+    font-weight: 700; cursor: pointer;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+    transition: all 0.2s;
   }
-  button:active{background:var(--azul2)}
-  button.ghost{background:transparent;border:1px solid var(--line);color:var(--txt)}
-  button.ok{background:var(--ok)}
-  button.warn{background:var(--warn);color:#111}
-  button.err{background:var(--err)}
+  button:active{
+    transform: scale(0.97);
+    box-shadow: 0 2px 5px rgba(37, 99, 235, 0.3);
+  }
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--txt); box-shadow:none;}
+  button.ok{background:var(--ok); box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);}
+  button.warn{background:var(--warn);color:#111; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);}
+  button.err{background:var(--err); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);}
   .btn-block{display:block;width:100%}
   .muted{color:var(--muted);font-size:13px}
   .msg{margin-top:10px;padding:10px 12px;border-radius:10px;font-size:14px;display:none}
@@ -58,8 +76,8 @@
   .fila-no-practica{background:#2a0a0a !important}
   .fila-no-practica td{border-bottom-color:#5a1010}
   .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
-  .tabs button{flex:1 1 auto;background:transparent;border:1px solid var(--line);color:var(--txt)}
-  .tabs button.active{background:var(--azul);border-color:var(--azul)}
+  .tabs button{flex:1 1 auto;background:transparent;border:1px solid var(--line);color:var(--txt); box-shadow:none;}
+  .tabs button.active{background:var(--azul);border-color:var(--azul); box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);}
   .hidden{display:none !important}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
@@ -79,6 +97,7 @@
   #pago-resumen-atleta ul{margin:4px 0 0 18px;padding:0}
   #pago-resumen-atleta li{margin:2px 0}
   .tasa-bcv-info{font-size:11px;color:var(--muted);margin-top:4px}
+  @keyframes spin { 100% { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -90,8 +109,11 @@
   </div>
 
   <div id="view-login" class="card hidden">
-    <h1>AtletaDeudas</h1>
-    <p class="muted">Control de aportes y pagos</p>
+    <div style="text-align: center; margin-bottom: 15px;">
+        <img src="icons/launchericon-192x192.png" alt="Logo" style="width: 80px; height: 80px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 2px solid var(--line);">
+    </div>
+    <h1 class="center">AtletaDeudas</h1>
+    <p class="muted center">Control de aportes y pagos</p>
     <label>Cédula</label>
     <input id="login-cedula" inputmode="numeric" autocomplete="username" />
     <label>Clave</label>
@@ -114,9 +136,9 @@
       </div>
       <p class="muted">Cédula: <span id="atleta-cedula">—</span></p>
       <div class="grid2 mt12">
-        <div class="card sub center">
-          <div class="muted small">Total adeudado</div>
-          <div id="atleta-deuda-bs" style="font-size:26px;font-weight:700;color:#fbbf24">—</div>
+        <div class="card sub center" style="background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%); border-left: 4px solid var(--oro); box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+          <div class="muted small" style="text-transform: uppercase; letter-spacing: 1px;">Total Adeudado</div>
+          <div id="atleta-deuda-bs" style="font-size:32px; font-weight:800; color:var(--oro); text-shadow: 0 2px 10px rgba(251, 191, 36, 0.3);">—</div>
           <div id="atleta-deuda-usd" class="muted small" style="margin-top:2px">—</div>
           <div id="atleta-deuda-detalle" class="muted small" style="margin-top:4px">—</div>
         </div>
@@ -1921,23 +1943,41 @@ async function init(){
     if(!bytes){ 
        console.log('Primera vez en este dispositivo. Sincronizando automáticamente...');
        setTimeout(async () => {
+           // Creamos el cartel visual flotante con spinner animado
            const loadMsg = document.createElement('div');
            loadMsg.id = 'load-alert';
-           loadMsg.className = 'msg show info';
            loadMsg.style.position = 'fixed';
            loadMsg.style.top = '20px';
            loadMsg.style.left = '50%';
            loadMsg.style.transform = 'translateX(-50%)';
            loadMsg.style.zIndex = '9999';
            loadMsg.style.textAlign = 'center';
+           loadMsg.style.background = '#0c1c3a';
+           loadMsg.style.color = '#b9cdff';
+           loadMsg.style.border = '1px solid #1e3a72';
+           loadMsg.style.padding = '12px 24px';
+           loadMsg.style.borderRadius = '10px';
            loadMsg.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
-           loadMsg.textContent = '⏳ Descargando datos desde GitHub por primera vez...';
+           loadMsg.style.fontSize = '14px';
+           loadMsg.style.fontWeight = 'bold';
+           loadMsg.style.display = 'flex';
+           loadMsg.style.alignItems = 'center';
+           loadMsg.style.gap = '10px';
+           
+           loadMsg.innerHTML = `
+             <div style="width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+             <div>⏳ Descargando datos por primera vez...<br><span style="font-size:12px;font-weight:normal;color:#9aa7c7">Por favor, espera un momento.</span></div>
+           `;
            document.body.appendChild(loadMsg);
 
+           // Ejecutamos la sincronización
            const r = await sincronizarDesdeGitHub();
            
+           // Quitamos el cartel de carga
            loadMsg.remove();
 
+           // Mostramos el resultado usando el helper avisar() 
+           // (que usará alert() porque ya NO estamos en Puppeteer)
            if(r.ok) {
                avisar(`✅ ¡Datos cargados satisfactoriamente!\n\n` + 
                      `Atletas nuevos: ${r.nuevos}\n` +
@@ -1947,7 +1987,7 @@ async function init(){
            } else {
                avisar(`⚠️ La aplicación se abrió, pero no se pudo conectar con GitHub automáticamente.\n\nError: ${r.error}\n\nPor favor, revisa tu conexión a internet.`);
            }
-       }, 1000); 
+       }, 500); // Redujimos a 500ms para que el usuario no espere tanto
     }
   }catch(e){
     console.error(e);
