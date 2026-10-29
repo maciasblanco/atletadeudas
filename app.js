@@ -325,10 +325,14 @@ function crearSchema(){
     github_repo:'atletadeudas', 
     github_ruta:'datos/atletas.json',
     github_rama:'main', 
-    github_token:'' /* TOKEN ELIMINADO POR SEGURIDAD */
+    github_token:'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'
   };
   for(const [k,v] of Object.entries(defaults)){
-    if(getConfig(k)===null) setConfig(k,v);
+    const actual = getConfig(k);
+    // Si es null o está vacío, pero NO es el token, lo rellenamos
+    if((actual === null || actual === '') && k !== 'github_token'){
+      setConfig(k,v);
+    }
   }
 
   db.run(`CREATE UNIQUE INDEX IF NOT EXISTS uq_pago_ref
@@ -826,6 +830,9 @@ function guardarAtleta(){
     renderAtletas(); cargarAtletasEnSelectPago();
     limpiarFormAtleta();
     showMsg(msg,'ok','Atleta guardado.');
+
+    subirAGitHub().catch(err=>console.warn('Sync post-atleta:', err));
+
   }catch(e){
     showMsg(msg,'err','Error al guardar: '+e.message);
   }
@@ -925,6 +932,9 @@ function registrarPago(){
     } else {
       showMsg(msg,'ok',`Pago registrado (Pendiente de verificación).`);
     }
+    
+    subirAGitHub().catch(err=>console.warn('Sync post-pago-admin:', err));
+
   }catch(e){
     showMsg(msg,'err','Error al registrar: '+e.message);
   }
@@ -1059,11 +1069,11 @@ function rechazarPago(pagoId){
    GitHub — sync v2
    ============================================================ */
 function construirRawURL(){
-  const u = getConfig('github_usuario','');
-  const r = getConfig('github_repo','');
-  const rama = getConfig('github_rama','main');
-  const ruta = getConfig('github_ruta','datos/atletas.json');
-  if(!u || !r){ GH_RAW=''; return ''; }
+  const u = getConfig('github_usuario') || 'maciasblanco';
+  const r = getConfig('github_repo') || 'atletadeudas';
+  const rama = getConfig('github_rama') || 'main';
+  const ruta = getConfig('github_ruta') || 'datos/atletas.json';
+  
   GH_RAW = `https://raw.githubusercontent.com/${u}/${r}/${rama}/${ruta}`;
   return GH_RAW;
 }
@@ -1153,14 +1163,21 @@ async function subirAGitHub(){
 }
 
 async function sincronizarDesdeGitHub(){
+  // Auto-reparación: Si los datos están vacíos en la BD, los rellenamos
+  if(!getConfig('github_usuario')) setConfig('github_usuario', 'maciasblanco');
+  if(!getConfig('github_repo')) setConfig('github_repo', 'atletadeudas');
+  if(!getConfig('github_ruta')) setConfig('github_ruta', 'datos/atletas.json');
+  if(!getConfig('github_rama')) setConfig('github_rama', 'main');
+
   construirRawURL();
   if(!GH_RAW) return {ok:false, error:'Falta configurar usuario/repo.'};
+  
   let json;
   try{
     const r = await fetch(`${GH_RAW}?t=${Date.now()}`, {cache:'no-store'});
-    if(!r.ok) return {ok:false, error:`HTTP ${r.status} al leer JSON`};
+    if(!r.ok) return {ok:false, error:`HTTP ${r.status} al leer JSON (${GH_RAW})`};
     json = await r.json();
-  }catch(e){ return {ok:false, error:'Error red al leer GitHub.'}; }
+  }catch(e){ return {ok:false, error:'Error red al leer GitHub: ' + e.message}; }
   if(!json || !Array.isArray(json.atletas)) return {ok:false, error:'JSON inválido.'};
 
   let nuevos=0, actualizados=0, pagosNuevos=0;
@@ -1543,9 +1560,13 @@ async function init(){
     if(!bytes){ 
        console.log('Primera vez en este dispositivo. Sincronizando automáticamente...');
        
+       // 1. Seteamos los valores en memoria
        if(!getConfig('github_usuario')) setConfig('github_usuario', 'maciasblanco');
        if(!getConfig('github_repo')) setConfig('github_repo', 'atletadeudas');
        if(!getConfig('github_ruta')) setConfig('github_ruta', 'datos/atletas.json');
+       
+       // 2. FORZAMOS EL GUARDADO EN INDEXEDDB ANTES DE SINCRONIZAR
+       await guardarBDEnIDB(); 
        
        setTimeout(async () => {
            const loadMsg = document.createElement('div');
@@ -1587,7 +1608,7 @@ async function init(){
            } else {
                avisar(`⚠️ La aplicación se abrió, pero no se pudo conectar con GitHub automáticamente.\n\nError: ${r.error}\n\nPor favor, revisa tu conexión a internet.`);
            }
-       }, 500);
+       }, 500); 
     }
   }catch(e){
     console.error(e);
