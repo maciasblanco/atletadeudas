@@ -1,8 +1,0 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "com.atletas.deudas.aves",
-        "sha256_cert_fingerprints": ["A5:55:A3:05:E0:DC:48:E4:21:8E:D3:95:3B:72:00:8F:07:7D:27:E6:30:11:2A:84:DC:9A:8F:6B:37:0D:48:ED"]
-      }
-    }]
