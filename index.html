@@ -141,8 +141,12 @@
               <div><label>Categoría</label>
                 <select id="categoria">
                   <option value="">— Seleccione —</option>
-                  <option>BENJAMÍN</option><option>PRE-INFANTIL</option><option>ALEVÍN</option>
-                  <option>INFANTIL</option><option>CADETE</option><option>JUVENIL</option><option>MAYOR</option>
+                  <option>SEMILLAS</option>
+                  <option>MINI</option>
+                  <option>INFANTIL</option>
+                  <option>PRE-JUVENIL</option>
+                  <option>JUVENIL</option>
+                  <option>MAYOR</option>
                 </select>
               </div>
               <div><label>Primer Nombre *</label><input id="p_nombre" required /></div>
@@ -283,6 +287,17 @@
           <button id="btn-subir-gh" class="ok">⬆ Subir a Remoto</button>
         </div>
         <div id="gh-msg" class="msg"></div>
+      </div>
+
+      <div class="card">
+        <h2>🛠 Mantenimiento</h2>
+        <p class="muted small">
+          Recalcula la categoría de todos los atletas a partir de su fecha de nacimiento
+          usando las reglas FVV (SEMILLAS / MINI / INFANTIL / PRE-JUVENIL / JUVENIL / MAYOR).
+          Útil para corregir categorías viejas tipo CADETE, PRE-INFANTIL, ALEVÍN o BENJAMÍN.
+        </p>
+        <button id="btn-recalcular-categorias" class="warn btn-block mt12">🔁 Recalcular categorías desde Fecha de Nacimiento</button>
+        <div id="recalc-msg" class="msg"></div>
       </div>
     </div>
   </div>

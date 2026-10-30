@@ -243,20 +243,28 @@ async function guardarBDEnIDB(){
 }
 
 /* ============================================================
-   NUEVAS FUNCIONES: Cálculo de Categoría y Edad
+   Cálculo de Categoría y Edad — Reglas FVV (Venezuela)
+   ------------------------------------------------------------
+   SEMILLAS    : 2015 en adelante
+   MINI        : 2013 - 2014
+   INFANTIL    : 2011 - 2012
+   PRE-JUVENIL : 2009 - 2010
+   JUVENIL     : 2007 - 2008
+   MAYOR       : 2006 y anteriores
+   (En Venezuela NO existe la categoría "Cadete")
    ============================================================ */
 function calcularCategoriaPorEdad(fechaNacimiento) {
   if (!fechaNacimiento) return "";
-  
-  const anioNacimiento = parseInt(fechaNacimiento.split('-')[0], 10);
-  
-  // Lógica según la información de la árbitra
-  if (anioNacimiento >= 2015) return "BENJAMÍN"; // Semillas
-  if (anioNacimiento >= 2013) return "PRE-INFANTIL"; // Mini
-  if (anioNacimiento >= 2011) return "INFANTIL";
-  if (anioNacimiento >= 2009) return "CADETE"; // Pre-juvenil
-  if (anioNacimiento >= 2007) return "JUVENIL";
-  return "MAYOR";
+
+  const anioNacimiento = parseInt(String(fechaNacimiento).split('-')[0], 10);
+  if (!anioNacimiento || isNaN(anioNacimiento)) return "";
+
+  if (anioNacimiento >= 2015) return "SEMILLAS";
+  if (anioNacimiento >= 2013) return "MINI";        // 2013 - 2014
+  if (anioNacimiento >= 2011) return "INFANTIL";    // 2011 - 2012
+  if (anioNacimiento >= 2009) return "PRE-JUVENIL"; // 2009 - 2010
+  if (anioNacimiento >= 2007) return "JUVENIL";     // 2007 - 2008
+  return "MAYOR";                                   // 2006 y anteriores
 }
 
 function calcularEdad(fechaNacimiento) {
@@ -1110,6 +1118,80 @@ function rechazarPago(pagoId){
 }
 
 /* ============================================================
+   Recalcular categorías masivamente desde Fecha de Nacimiento
+   ============================================================ */
+async function recalcularCategoriasDesdeFN(){
+  const msg = $('recalc-msg');
+  hideMsg(msg);
+
+  const atletas = all(`SELECT id, identificacion, p_nombre, p_apellido, fn, categoria
+                       FROM atletas WHERE activo=1 ORDER BY p_apellido, p_nombre`);
+
+  if(atletas.length === 0){
+    return showMsg(msg,'err','No hay atletas activos para procesar.');
+  }
+
+  const sinFN = [];
+  const cambios = [];
+  for(const a of atletas){
+    if(!a.fn){
+      sinFN.push(a);
+      continue;
+    }
+    const catNueva = calcularCategoriaPorEdad(a.fn);
+    if(!catNueva) continue;
+    const catActual = (a.categoria || '').trim();
+    if(catActual !== catNueva){
+      cambios.push({ atleta: a, catNueva, catActual });
+    }
+  }
+
+  if(cambios.length === 0 && sinFN.length === 0){
+    return showMsg(msg,'ok','✅ Todos los atletas ya tienen la categoría correcta según su fecha de nacimiento.');
+  }
+
+  const resumenPrevio =
+    `Se van a actualizar ${cambios.length} atleta(s).\n` +
+    `Sin fecha de nacimiento (no se tocan): ${sinFN.length}\n\n` +
+    (cambios.length ? `Ejemplos:\n` + cambios.slice(0,5).map(c =>
+      `· ${c.atleta.p_apellido||''} ${c.atleta.p_nombre||''} (${c.atleta.identificacion}): ${c.catActual||'(vacía)'} → ${c.catNueva}`
+    ).join('\n') : '') +
+    `\n\n¿Continuar?`;
+
+  if(!confirmar(resumenPrevio)) {
+    return showMsg(msg,'info','Operación cancelada. No se cambió nada.');
+  }
+
+  let actualizados = 0;
+  try{
+    for(const c of cambios){
+      db.run(`UPDATE atletas SET categoria=? WHERE id=?`, [c.catNueva, c.atleta.id]);
+      actualizados++;
+    }
+
+    await guardarBDEnIDB();
+    renderAtletas();
+    refrescarAdmin();
+
+    let texto = `✅ Categorías recalculadas: ${actualizados} atleta(s) actualizado(s).`;
+    if(sinFN.length){
+      texto += ` ⚠️ ${sinFN.length} atleta(s) sin fecha de nacimiento (revisalos manualmente): ` +
+        sinFN.slice(0,8).map(a => `${a.p_apellido||''} ${a.p_nombre||''} (${a.identificacion})`).join(', ') +
+        (sinFN.length > 8 ? '…' : '');
+    }
+    showMsg(msg, sinFN.length ? 'info' : 'ok', texto);
+
+    if(actualizados > 0){
+      const r = await subirAGitHub();
+      if(r.ok) console.log('Sync post-recalcular: OK');
+      else console.warn('Sync post-recalcular falló:', r.error);
+    }
+  }catch(e){
+    showMsg(msg,'err','Error al recalcular: '+e.message);
+  }
+}
+
+/* ============================================================
    GitHub — sync v2
    ============================================================ */
 function construirRawURL(){
@@ -1515,6 +1597,7 @@ function wireEvents(){
       const catCalculada = calcularCategoriaPorEdad(fecha);
       const edad = calcularEdad(fecha);
       
+      // Limpiar textos con edad de todas las opciones
       for (let i = 0; i < selectCat.options.length; i++) {
         const opt = selectCat.options[i];
         opt.text = opt.text.replace(/\s*\(\d+\s*años\)/, ''); 
@@ -1522,6 +1605,7 @@ function wireEvents(){
       
       selectCat.value = catCalculada;
       
+      // Si la categoría calculada existe en el select, le agregamos la edad
       if (selectCat.value === catCalculada) {
         const selectedOption = selectCat.options[selectCat.selectedIndex];
         selectedOption.text = `${catCalculada} (${edad} años)`;
@@ -1565,6 +1649,9 @@ function wireEvents(){
       refrescarAdmin();
     } else showMsg($('gh-msg'),'err', r.error);
   });
+
+  // RECALCULAR CATEGORÍAS MASIVAMENTE
+  on('btn-recalcular-categorias', recalcularCategoriasDesdeFN);
 
   on('btn-sync-login', async ()=>{
     showMsg($('sync-login-msg'),'info','Sincronizando…');
