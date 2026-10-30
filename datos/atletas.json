@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-10-28T15:57:47.669Z",
+  "actualizado": "2026-10-29T20:30:00.000Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -544,6 +544,40 @@
         "telefono": "04141506918",
         "email": "",
         "parentesco": ""
+      }
+    },
+    {
+      "cedula": "36279460",
+      "nombre": "Franches Sarai",
+      "apellido": "Toro Angarita",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "24636406",
+        "nombre": "Sarai Raquel",
+        "apellido": "Toro Angarita",
+        "telefono": "04263158282",
+        "email": "saraitoro845@gmail.com",
+        "parentesco": "MADRE"
+      }
+    },
+    {
+      "cedula": "33325164",
+      "nombre": "Victoria",
+      "apellido": "González",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "INFANTIL",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "11934071",
+        "nombre": "Iris",
+        "apellido": "Abello",
+        "telefono": "04122932009",
+        "email": "fwirisabello9@gmail.com",
+        "parentesco": "MADRE"
       }
     }
   ],

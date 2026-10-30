@@ -243,6 +243,39 @@ async function guardarBDEnIDB(){
 }
 
 /* ============================================================
+   NUEVAS FUNCIONES: Cálculo de Categoría y Edad
+   ============================================================ */
+function calcularCategoriaPorEdad(fechaNacimiento) {
+  if (!fechaNacimiento) return "";
+  
+  const anioNacimiento = parseInt(fechaNacimiento.split('-')[0], 10);
+  
+  // Lógica según la información de la árbitra
+  if (anioNacimiento >= 2015) return "BENJAMÍN"; // Semillas
+  if (anioNacimiento >= 2013) return "PRE-INFANTIL"; // Mini
+  if (anioNacimiento >= 2011) return "INFANTIL";
+  if (anioNacimiento >= 2009) return "CADETE"; // Pre-juvenil
+  if (anioNacimiento >= 2007) return "JUVENIL";
+  return "MAYOR";
+}
+
+function calcularEdad(fechaNacimiento) {
+  if (!fechaNacimiento) return "";
+  
+  const nacimiento = new Date(fechaNacimiento + 'T00:00:00');
+  const hoy = new Date();
+  
+  let edad = hoy.getFullYear() - nacimiento.getFullYear();
+  const mes = hoy.getMonth() - nacimiento.getMonth();
+  
+  if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+    edad--;
+  }
+  
+  return edad;
+}
+
+/* ============================================================
    crearSchema() v2
    ============================================================ */
 function crearSchema(){
@@ -325,11 +358,10 @@ function crearSchema(){
     github_repo:'atletadeudas', 
     github_ruta:'datos/atletas.json',
     github_rama:'main', 
-    github_token:'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'
+    github_token:'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' 
   };
   for(const [k,v] of Object.entries(defaults)){
     const actual = getConfig(k);
-    // Si es null o está vacío, pero NO es el token, lo rellenamos
     if((actual === null || actual === '') && k !== 'github_token'){
       setConfig(k,v);
     }
@@ -483,7 +515,7 @@ function renderAtletas(){
   const filtro = ($('buscar-atleta')?.value||'').trim().toLowerCase();
   let rows = all(`
     SELECT a.id, a.identificacion, a.p_nombre, a.s_nombre, a.p_apellido, a.s_apellido,
-           a.categoria, a.deuda,
+           a.categoria, a.deuda, a.fn,
            r.nombre AS rep_nombre, r.apellido AS rep_apellido, r.telefono AS rep_tel
       FROM atletas a
       LEFT JOIN representantes r ON r.id = a.representante_id
@@ -731,6 +763,14 @@ function limpiarFormAtleta(){
   const cat=$('categoria'); if(cat) cat.value='';
   const esc=$('escuela'); if(esc) esc.value='Club Aves Voladoras';
   const par=$('rep_parentesco'); if(par) par.value='';
+
+  // Restaurar el texto original de las categorías borrando la edad
+  const selectCat = $('categoria');
+  if (selectCat) {
+    for (let i = 0; i < selectCat.options.length; i++) {
+      selectCat.options[i].text = selectCat.options[i].text.replace(/\s*\(\d+\s*años\)/, '');
+    }
+  }
 }
 
 function editarAtleta(id){
@@ -811,19 +851,23 @@ function guardarAtleta(){
     const claveInput = $('clave_atleta').value.trim();
     const clave = claveInput || clavePorDefecto(ident);
 
+    // Si la categoria tiene texto de edad, lo limpiamos antes de guardar
+    let catLimpia = $('categoria').value;
+    catLimpia = catLimpia.replace(/\s*\(\d+\s*años\)/, '');
+
     if(idEdit){
       db.run(`UPDATE atletas SET identificacion=?, p_nombre=?, s_nombre=?, p_apellido=?, s_apellido=?,
               fn=?, categoria=?, escuela=?, cell=?, telf_emergencia1=?, representante_id=?, clave=?
               WHERE id=?`,
         [ident, pNom, $('s_nombre').value.trim(), pApe, $('s_apellido').value.trim(),
-         $('fn').value||null, $('categoria').value, $('escuela').value.trim(),
+         $('fn').value||null, catLimpia, $('escuela').value.trim(),
          $('cell').value.trim(), $('telf_emergencia1').value.trim(), rep.id, clave, idEdit]);
     } else {
       db.run(`INSERT INTO atletas(identificacion,p_nombre,s_nombre,p_apellido,s_apellido,
               fn,categoria,escuela,cell,telf_emergencia1,representante_id,clave,deuda,activo)
               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,0,1)`,
         [ident, pNom, $('s_nombre').value.trim(), pApe, $('s_apellido').value.trim(),
-         $('fn').value||null, $('categoria').value, $('escuela').value.trim(),
+         $('fn').value||null, catLimpia, $('escuela').value.trim(),
          $('cell').value.trim(), $('telf_emergencia1').value.trim(), rep.id, clave]);
     }
     guardarBDEnIDB();
@@ -1104,6 +1148,7 @@ async function subirAGitHub(){
     atletas: atletas.map(a=>({
       cedula: String(a.identificacion||''),
       nombre: a.p_nombre||'', apellido: a.p_apellido||'',
+      fn: a.fn || '',
       deuda: Number(a.deuda)||0,
       activo: (a.activo == null ? 1 : (Number(a.activo) || 0)),
       categoria: a.categoria||'', escuela: a.escuela||'',
@@ -1163,7 +1208,6 @@ async function subirAGitHub(){
 }
 
 async function sincronizarDesdeGitHub(){
-  // Auto-reparación: Si los datos están vacíos en la BD, los rellenamos
   if(!getConfig('github_usuario')) setConfig('github_usuario', 'maciasblanco');
   if(!getConfig('github_repo')) setConfig('github_repo', 'atletadeudas');
   if(!getConfig('github_ruta')) setConfig('github_ruta', 'datos/atletas.json');
@@ -1202,16 +1246,16 @@ async function sincronizarDesdeGitHub(){
     const existente = one('SELECT id FROM atletas WHERE identificacion=?', [ced]);
     const activoVal = (a.activo == null ? 1 : (Number(a.activo) || 0));
     if(existente){
-      db.run(`UPDATE atletas SET p_nombre=?, p_apellido=?, categoria=?, escuela=?,
+      db.run(`UPDATE atletas SET p_nombre=?, p_apellido=?, categoria=?, escuela=?, fn=?,
               representante_id=?, deuda=?, activo=? WHERE id=?`,
-        [a.nombre||'', a.apellido||'', a.categoria||'', a.escuela||'',
+        [a.nombre||'', a.apellido||'', a.categoria||'', a.escuela||'', a.fn||null,
          repId, Number(a.deuda)||0, activoVal, existente.id]);
       actualizados++;
     } else {
       const clave = clavePorDefecto(ced);
-      db.run(`INSERT INTO atletas(identificacion,p_nombre,p_apellido,categoria,escuela,
-              representante_id,clave,deuda,activo) VALUES(?,?,?,?,?,?,?,?,?)`,
-        [ced, a.nombre||'', a.apellido||'', a.categoria||'', a.escuela||'',
+      db.run(`INSERT INTO atletas(identificacion,p_nombre,p_apellido,categoria,escuela,fn,
+              representante_id,clave,deuda,activo) VALUES(?,?,?,?,?,?,?,?,?,?)`,
+        [ced, a.nombre||'', a.apellido||'', a.categoria||'', a.escuela||'', a.fn||null,
          repId, clave, Number(a.deuda)||0, activoVal]);
       nuevos++;
     }
@@ -1462,6 +1506,29 @@ function wireEvents(){
   onEvent('monto', 'input', actualizarCoberturaPago);
   onEvent('pago_atleta', 'change', renderResumenPagoAdmin);
 
+  // EVENTO PARA CALCULAR CATEGORÍA Y EDAD AUTOMÁTICAMENTE
+  onEvent('fn', 'change', (e) => {
+    const fecha = e.target.value;
+    const selectCat = $('categoria');
+    
+    if (fecha && selectCat) {
+      const catCalculada = calcularCategoriaPorEdad(fecha);
+      const edad = calcularEdad(fecha);
+      
+      for (let i = 0; i < selectCat.options.length; i++) {
+        const opt = selectCat.options[i];
+        opt.text = opt.text.replace(/\s*\(\d+\s*años\)/, ''); 
+      }
+      
+      selectCat.value = catCalculada;
+      
+      if (selectCat.value === catCalculada) {
+        const selectedOption = selectCat.options[selectCat.selectedIndex];
+        selectedOption.text = `${catCalculada} (${edad} años)`;
+      }
+    }
+  });
+
   on('btn-guardar-config', ()=>{
     setConfig('monto_quincena', $('c-monto-quincena').value);
     setConfig('tasa_dolar', $('c-tasa-dolar').value);
@@ -1560,12 +1627,10 @@ async function init(){
     if(!bytes){ 
        console.log('Primera vez en este dispositivo. Sincronizando automáticamente...');
        
-       // 1. Seteamos los valores en memoria
        if(!getConfig('github_usuario')) setConfig('github_usuario', 'maciasblanco');
        if(!getConfig('github_repo')) setConfig('github_repo', 'atletadeudas');
        if(!getConfig('github_ruta')) setConfig('github_ruta', 'datos/atletas.json');
        
-       // 2. FORZAMOS EL GUARDADO EN INDEXEDDB ANTES DE SINCRONIZAR
        await guardarBDEnIDB(); 
        
        setTimeout(async () => {
