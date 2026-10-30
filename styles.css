@@ -145,3 +145,62 @@ legend { padding: 0 8px; color: var(--azul-glow); font-size: 11px; font-weight: 
 }
 .brand-title { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; margin: 0; color: #fff; }
 .brand-title span { color: var(--azul-glow); }
+
+/* ============================================================
+   Inputs con botón "ojo" para mostrar/ocultar contraseña
+   ============================================================ */
+.input-pass {
+  position: relative;
+  width: 100%;
+}
+
+.input-pass input {
+  width: 100%;
+  /* Espacio a la derecha para que el texto no quede debajo del botón */
+  padding-right: 46px;
+}
+
+.input-pass .btn-pass {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  min-height: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.input-pass .btn-pass:hover {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--txt);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.input-pass .btn-pass:active {
+  transform: translateY(-50%) scale(0.95);
+  filter: none;
+}
+
+.input-pass .btn-pass:focus-visible {
+  outline: 2px solid var(--azul-glow);
+  outline-offset: 2px;
+}
+
+/* Ajuste para móviles: un poco más compacto */
+@media (max-width: 480px) {
+  .input-pass input { padding-right: 42px; }
+  .input-pass .btn-pass { width: 30px; height: 30px; font-size: 15px; right: 5px; }
+}

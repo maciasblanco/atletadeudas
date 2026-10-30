@@ -29,7 +29,10 @@
     <label>Cédula</label>
     <input id="login-cedula" inputmode="numeric" autocomplete="username" placeholder="Ingresa tu cédula" />
     <label>Clave</label>
-    <input id="login-clave" type="password" autocomplete="current-password" placeholder="Ingresa tu clave" />
+    <div class="input-pass">
+      <input id="login-clave" type="password" autocomplete="current-password" placeholder="Ingresa tu clave" />
+      <button type="button" class="btn-pass" data-toggle-pass="login-clave" aria-label="Mostrar u ocultar clave">👁</button>
+    </div>
     <div class="grid2 mt12">
       <button id="btn-login-atleta">Entrar como atleta</button>
       <button id="btn-login-admin" class="ghost">Entrar como admin</button>
@@ -157,7 +160,13 @@
               <div><label>Escuela</label><input id="escuela" value="Club Aves Voladoras" /></div>
               <div><label>Teléfono Atleta</label><input id="cell" /></div>
               <div><label>Teléfono Emergencia</label><input id="telf_emergencia1" /></div>
-              <div><label>Clave (Login)</label><input id="clave_atleta" placeholder="Por defecto: 4 últimos dígitos" /></div>
+              <div style="grid-column: 1 / -1;">
+                <label>Clave (Login)</label>
+                <div class="input-pass">
+                  <input id="clave_atleta" type="password" placeholder="Por defecto: 4 últimos dígitos" />
+                  <button type="button" class="btn-pass" data-toggle-pass="clave_atleta" aria-label="Mostrar u ocultar clave">👁</button>
+                </div>
+              </div>
             </div>
           </fieldset>
           <fieldset>
@@ -261,7 +270,12 @@
         <div class="grid2">
           <div><label>Monto Quincena (USD)</label><input id="c-monto-quincena" type="number" step="0.01" /></div>
           <div><label>Tasa USD (Bs)</label><input id="c-tasa-dolar" type="number" step="0.0001" /></div>
-          <div><label>Clave Admin</label><input id="c-clave-admin" /></div>
+          <div><label>Clave Admin</label>
+            <div class="input-pass">
+              <input id="c-clave-admin" type="password" />
+              <button type="button" class="btn-pass" data-toggle-pass="c-clave-admin" aria-label="Mostrar u ocultar clave">👁</button>
+            </div>
+          </div>
           <div><label>Fecha Inicio Deuda</label><input id="c-fecha-corte" type="date" /></div>
         </div>
         <div class="grid2 mt12">
@@ -281,7 +295,10 @@
           <div><label>Rama</label><input id="c-gh-rama" /></div>
         </div>
         <label>Token (Fine-grained)</label>
-        <input id="c-gh-token" type="password" />
+        <div class="input-pass">
+          <input id="c-gh-token" type="password" />
+          <button type="button" class="btn-pass" data-toggle-pass="c-gh-token" aria-label="Mostrar u ocultar token">👁</button>
+        </div>
         <div class="grid2 mt12">
           <button id="btn-guardar-gh">Guardar GitHub</button>
           <button id="btn-subir-gh" class="ok">⬆ Subir a Remoto</button>

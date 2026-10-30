@@ -138,6 +138,40 @@ function showMsg(el, tipo, texto){ if(!el) return; el.className='msg show '+tipo
 function hideMsg(el){ if(el){ el.className='msg'; el.textContent=''; } }
 
 /* ============================================================
+   Mostrar / Ocultar contraseñas (botón ojo)
+   ============================================================ */
+function wirePasswordToggles(){
+  document.querySelectorAll('button[data-toggle-pass]').forEach(btn => {
+    if(btn.dataset.passWired === '1') return;
+    btn.dataset.passWired = '1';
+
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const input = $(btn.dataset.togglePass);
+      if(!input) return;
+
+      const mostrando = input.type === 'text';
+      input.type = mostrando ? 'password' : 'text';
+      btn.textContent = mostrando ? '👁' : '🙈';
+      btn.setAttribute('aria-label', mostrando ? 'Mostrar clave' : 'Ocultar clave');
+      try { input.focus({ preventScroll: true }); } catch(_) { input.focus(); }
+    });
+  });
+}
+
+/* Resetea un toggle de contraseña a su estado oculto */
+function resetPassToggle(inputId){
+  const input = $(inputId);
+  if(input) input.type = 'password';
+  const btn = document.querySelector(`button[data-toggle-pass="${inputId}"]`);
+  if(btn){
+    btn.textContent = '👁';
+    btn.setAttribute('aria-label', 'Mostrar clave');
+  }
+}
+
+/* ============================================================
    TASA BCV AUTOMÁTICA
    ============================================================ */
 async function obtenerTasaBCV(){
@@ -779,6 +813,9 @@ function limpiarFormAtleta(){
       selectCat.options[i].text = selectCat.options[i].text.replace(/\s*\(\d+\s*años\)/, '');
     }
   }
+
+  // Resetear el toggle de la clave del atleta a "oculto"
+  resetPassToggle('clave_atleta');
 }
 
 function editarAtleta(id){
@@ -807,6 +844,10 @@ function editarAtleta(id){
   $('rep_telefono').value = a.rep_tel||'';
   $('rep_email').value = a.rep_email||'';
   $('rep_parentesco').value = a.rep_parentesco||'';
+
+  // Al cargar un atleta, la clave debe quedar oculta por defecto
+  resetPassToggle('clave_atleta');
+
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1516,6 +1557,10 @@ function refrescarAdmin(){
   if(fq && !fq.value) fq.value = fechaQuincenaActual();
   actualizarNumeroQuincena();
 
+  // Resetear toggles de claves sensibles a "oculto"
+  resetPassToggle('c-clave-admin');
+  resetPassToggle('c-gh-token');
+
   const info = $('tasa-bcv-info');
   if(info){
     const f = getConfig('tasa_bcv_fecha','');
@@ -1547,6 +1592,9 @@ function refrescarAdmin(){
 function wireEvents(){
   const on = (id, fn) => { const el = $(id); if(el) el.onclick = fn; };
   const onEvent = (id, evt, fn) => { const el = $(id); if(el) el.addEventListener(evt, fn); };
+
+  // Botones de ojo (mostrar/ocultar claves)
+  wirePasswordToggles();
 
   on('btn-login-atleta', loginAtleta);
   on('btn-login-admin', loginAdmin);
