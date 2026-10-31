@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-10-31T20:34:59.491Z",
+  "actualizado": "2026-10-31T20:36:45.036Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -386,7 +386,7 @@
       "apellido": "Guillen",
       "fn": "",
       "deuda": 0,
-      "activo": 1,
+      "activo": 0,
       "categoria": "ALEVÍN",
       "escuela": "Club Aves Voladoras",
       "representante": {
