@@ -1,11 +1,12 @@
 {
   "version": 2,
-  "actualizado": "2026-10-29T20:30:00.000Z",
+  "actualizado": "2026-10-31T20:34:06.803Z",
   "atletas": [
     {
       "cedula": "34671276",
       "nombre": "NICOL",
       "apellido": "ALCALÁ",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "CADETE",
@@ -23,6 +24,7 @@
       "cedula": "36365112",
       "nombre": "Leiximar",
       "apellido": "Alvarez",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "PRE-INFANTIL",
@@ -37,26 +39,10 @@
       }
     },
     {
-      "cedula": "17720309",
-      "nombre": "ANTHONELLA",
-      "apellido": "BLANCO",
-      "deuda": 0,
-      "activo": 1,
-      "categoria": "PRE-INFANTIL",
-      "escuela": "Club Aves Voladoras",
-      "representante": {
-        "cedula": "17720309",
-        "nombre": "CLARA",
-        "apellido": "BLANCO",
-        "telefono": "04164224109",
-        "email": "",
-        "parentesco": ""
-      }
-    },
-    {
       "cedula": "33909715",
       "nombre": "Dayleris",
       "apellido": "Bonilla",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "CADETE",
@@ -71,26 +57,10 @@
       }
     },
     {
-      "cedula": "34670104",
-      "nombre": "Norbelis",
-      "apellido": "Espinoza",
-      "deuda": 0,
-      "activo": 1,
-      "categoria": "",
-      "escuela": "Club Aves Voladoras",
-      "representante": {
-        "cedula": "16563136",
-        "nombre": "Norberto",
-        "apellido": "Mejias",
-        "telefono": "04242080110",
-        "email": "",
-        "parentesco": ""
-      }
-    },
-    {
       "cedula": "33910015",
       "nombre": "ANTHONELLA",
       "apellido": "GARCÍA",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "JUVENIL",
@@ -105,60 +75,10 @@
       }
     },
     {
-      "cedula": "36809028",
-      "nombre": "DARIANA",
-      "apellido": "GIL",
-      "deuda": 0,
-      "activo": 1,
-      "categoria": "CADETE",
-      "escuela": "Club Aves Voladoras",
-      "representante": {
-        "cedula": "8680033",
-        "nombre": "VICTOR",
-        "apellido": "ALGARIN",
-        "telefono": "04164392365",
-        "email": "",
-        "parentesco": ""
-      }
-    },
-    {
-      "cedula": "34382976",
-      "nombre": "Wisneidy",
-      "apellido": "Gomez",
-      "deuda": 0,
-      "activo": 1,
-      "categoria": "JUVENIL",
-      "escuela": "Club Aves Voladoras",
-      "representante": {
-        "cedula": "18601503",
-        "nombre": "Wilmer",
-        "apellido": "García",
-        "telefono": "04123735655",
-        "email": "",
-        "parentesco": ""
-      }
-    },
-    {
-      "cedula": "24215045-1",
-      "nombre": "Alexaire",
-      "apellido": "Guillen",
-      "deuda": 0,
-      "activo": 1,
-      "categoria": "ALEVÍN",
-      "escuela": "Club Aves Voladoras",
-      "representante": {
-        "cedula": "24215045",
-        "nombre": "Yaré",
-        "apellido": "Guillen",
-        "telefono": "04264060379",
-        "email": "",
-        "parentesco": ""
-      }
-    },
-    {
       "cedula": "32811518",
       "nombre": "Keisymar",
       "apellido": "Gutiérrez",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "JUVENIL",
@@ -176,6 +96,7 @@
       "cedula": "34552718",
       "nombre": "Omarlys",
       "apellido": "Larez",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "",
@@ -190,26 +111,10 @@
       }
     },
     {
-      "cedula": "33626320",
-      "nombre": "ZINAY",
-      "apellido": "LEÓN",
-      "deuda": 0,
-      "activo": 1,
-      "categoria": "CADETE",
-      "escuela": "Club Aves Voladoras",
-      "representante": {
-        "cedula": "10812097",
-        "nombre": "CARMEN",
-        "apellido": "LEÓN",
-        "telefono": "04127077758",
-        "email": "",
-        "parentesco": ""
-      }
-    },
-    {
       "cedula": "33909989",
       "nombre": "AURORA",
       "apellido": "LOPEZ",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "CADETE",
@@ -224,26 +129,10 @@
       }
     },
     {
-      "cedula": "36556838",
-      "nombre": "YADIERLYS",
-      "apellido": "MATA",
-      "deuda": 0,
-      "activo": 1,
-      "categoria": "INFANTIL",
-      "escuela": "Club Aves Voladoras",
-      "representante": {
-        "cedula": "18598759",
-        "nombre": "JESSICA",
-        "apellido": "MATA",
-        "telefono": "04129603290",
-        "email": "",
-        "parentesco": ""
-      }
-    },
-    {
       "cedula": "27392641",
       "nombre": "Alejandra",
       "apellido": "Mendoza",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "",
@@ -261,6 +150,7 @@
       "cedula": "33854701",
       "nombre": "Daiberly",
       "apellido": "Mendoza",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "CADETE",
@@ -275,43 +165,10 @@
       }
     },
     {
-      "cedula": "34736936",
-      "nombre": "Daviadnny",
-      "apellido": "Mijares",
-      "deuda": 0,
-      "activo": 1,
-      "categoria": "",
-      "escuela": "Club Aves Voladoras",
-      "representante": {
-        "cedula": "5145382",
-        "nombre": "Besgreisi",
-        "apellido": "García",
-        "telefono": "04128240798",
-        "email": "",
-        "parentesco": ""
-      }
-    },
-    {
-      "cedula": "36174599",
-      "nombre": "Ariannys",
-      "apellido": "Olivos",
-      "deuda": 0,
-      "activo": 1,
-      "categoria": "INFANTIL",
-      "escuela": "Club Aves Voladoras",
-      "representante": {
-        "cedula": "10812201",
-        "nombre": "Yilda",
-        "apellido": "Ríos",
-        "telefono": "04125778880",
-        "email": "",
-        "parentesco": ""
-      }
-    },
-    {
       "cedula": "33742132",
       "nombre": "Kleiber",
       "apellido": "Pacheco",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "CADETE",
@@ -326,77 +183,10 @@
       }
     },
     {
-      "cedula": "34807501",
-      "nombre": "Danielis",
-      "apellido": "Padrino",
-      "deuda": 0,
-      "activo": 1,
-      "categoria": "",
-      "escuela": "Club Aves Voladoras",
-      "representante": {
-        "cedula": "16478182",
-        "nombre": "Maryolis",
-        "apellido": "Lunar",
-        "telefono": "04142102171",
-        "email": "",
-        "parentesco": ""
-      }
-    },
-    {
-      "cedula": "33625820",
-      "nombre": "Nichooll",
-      "apellido": "Ramos",
-      "deuda": 0,
-      "activo": 1,
-      "categoria": "JUVENIL",
-      "escuela": "Club Aves Voladoras",
-      "representante": {
-        "cedula": "11903218",
-        "nombre": "Janeth",
-        "apellido": "Ramos",
-        "telefono": "04128065269",
-        "email": "",
-        "parentesco": ""
-      }
-    },
-    {
-      "cedula": "11903218-1",
-      "nombre": "Valeria",
-      "apellido": "Ramos",
-      "deuda": 0,
-      "activo": 1,
-      "categoria": "BENJAMÍN",
-      "escuela": "Club Aves Voladoras",
-      "representante": {
-        "cedula": "11903218",
-        "nombre": "Janeth",
-        "apellido": "Ramos",
-        "telefono": "04128065269",
-        "email": "",
-        "parentesco": ""
-      }
-    },
-    {
-      "cedula": "19650993-1",
-      "nombre": "Charlotte",
-      "apellido": "Rodríguez",
-      "deuda": 0,
-      "activo": 1,
-      "categoria": "BENJAMÍN",
-      "escuela": "Club Aves Voladoras",
-      "representante": {
-        "cedula": "19650993",
-        "nombre": "Yoselin",
-        "apellido": "Aponte",
-        "telefono": "04242980356",
-        "email": "",
-        "parentesco": ""
-      }
-    },
-    {
       "cedula": "34065424",
       "nombre": "Aranza",
       "apellido": "Rondón",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "",
@@ -414,6 +204,7 @@
       "cedula": "37221581",
       "nombre": "Leoriana",
       "apellido": "Ruiz",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "PRE-INFANTIL",
@@ -431,6 +222,7 @@
       "cedula": "33230161",
       "nombre": "YULIANNI",
       "apellido": "SALCEDO",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "JUVENIL",
@@ -448,6 +240,7 @@
       "cedula": "32919459",
       "nombre": "MARIAMNER",
       "apellido": "SANZ",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "JUVENIL",
@@ -465,6 +258,7 @@
       "cedula": "34672087",
       "nombre": "LILIBETH",
       "apellido": "SILGADO",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "CADETE",
@@ -479,26 +273,10 @@
       }
     },
     {
-      "cedula": "33910473",
-      "nombre": "MARIANA",
-      "apellido": "VALDEZ",
-      "deuda": 0,
-      "activo": 1,
-      "categoria": "CADETE",
-      "escuela": "Club Aves Voladoras",
-      "representante": {
-        "cedula": "24215385",
-        "nombre": "LEÓNIDAS",
-        "apellido": "VALDEZ",
-        "telefono": "04129527030",
-        "email": "",
-        "parentesco": ""
-      }
-    },
-    {
       "cedula": "16083577-1",
       "nombre": "Joenllily",
       "apellido": "Velasquez",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "CADETE",
@@ -513,26 +291,10 @@
       }
     },
     {
-      "cedula": "36117712",
-      "nombre": "Jerwelis",
-      "apellido": "Villanueva",
-      "deuda": 0,
-      "activo": 1,
-      "categoria": "CADETE",
-      "escuela": "Club Aves Voladoras",
-      "representante": {
-        "cedula": "18492165",
-        "nombre": "Ana",
-        "apellido": "Meléndez",
-        "telefono": "04126114824",
-        "email": "",
-        "parentesco": ""
-      }
-    },
-    {
       "cedula": "34064965",
       "nombre": "MANUANYELI",
       "apellido": "WALTERS",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "CADETE",
@@ -547,9 +309,28 @@
       }
     },
     {
+      "cedula": "34229856",
+      "nombre": "Yanelis",
+      "apellido": "Orozco",
+      "fn": "2010-02-20",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "29828214",
+        "nombre": "Yanelis",
+        "apellido": "Charrasquiel",
+        "telefono": "04241447704",
+        "email": "",
+        "parentesco": "MADRE"
+      }
+    },
+    {
       "cedula": "36279460",
       "nombre": "Franches Sarai",
       "apellido": "Toro Angarita",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "",
@@ -567,6 +348,7 @@
       "cedula": "33325164",
       "nombre": "Victoria",
       "apellido": "González",
+      "fn": "",
       "deuda": 0,
       "activo": 1,
       "categoria": "INFANTIL",
@@ -578,6 +360,222 @@
         "telefono": "04122932009",
         "email": "fwirisabello9@gmail.com",
         "parentesco": "MADRE"
+      }
+    },
+    {
+      "cedula": "36226120",
+      "nombre": "Jeaniuskka",
+      "apellido": "Blanco",
+      "fn": "2014-04-14",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "MINI",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "17641706",
+        "nombre": "Katiuska",
+        "apellido": "Abreu",
+        "telefono": "04261136177",
+        "email": "",
+        "parentesco": "MADRE"
+      }
+    },
+    {
+      "cedula": "24215045-1",
+      "nombre": "Alexaire",
+      "apellido": "Guillen",
+      "fn": "",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "ALEVÍN",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "24215045",
+        "nombre": "Yaré",
+        "apellido": "Guillen",
+        "telefono": "04264060379",
+        "email": "",
+        "parentesco": ""
+      }
+    },
+    {
+      "cedula": "33626320",
+      "nombre": "ZINAY",
+      "apellido": "LEÓN",
+      "fn": "",
+      "deuda": 0,
+      "activo": 0,
+      "categoria": "CADETE",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "10812097",
+        "nombre": "CARMEN",
+        "apellido": "LEÓN",
+        "telefono": "04127077758",
+        "email": "",
+        "parentesco": ""
+      }
+    },
+    {
+      "cedula": "36556838",
+      "nombre": "YADIERLYS",
+      "apellido": "MATA",
+      "fn": "",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "INFANTIL",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "18598759",
+        "nombre": "JESSICA",
+        "apellido": "MATA",
+        "telefono": "04129603290",
+        "email": "",
+        "parentesco": ""
+      }
+    },
+    {
+      "cedula": "34736936",
+      "nombre": "Daviadnny",
+      "apellido": "Mijares",
+      "fn": "",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "5145382",
+        "nombre": "Besgreisi",
+        "apellido": "García",
+        "telefono": "04128240798",
+        "email": "",
+        "parentesco": ""
+      }
+    },
+    {
+      "cedula": "36174599",
+      "nombre": "Ariannys",
+      "apellido": "Olivos",
+      "fn": "",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "INFANTIL",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "10812201",
+        "nombre": "Yilda",
+        "apellido": "Ríos",
+        "telefono": "04125778880",
+        "email": "",
+        "parentesco": ""
+      }
+    },
+    {
+      "cedula": "34807501",
+      "nombre": "Danielis",
+      "apellido": "Padrino",
+      "fn": "",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "16478182",
+        "nombre": "Maryolis",
+        "apellido": "Lunar",
+        "telefono": "04142102171",
+        "email": "",
+        "parentesco": ""
+      }
+    },
+    {
+      "cedula": "33625820",
+      "nombre": "Nichooll",
+      "apellido": "Ramos",
+      "fn": "",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "JUVENIL",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "11903218",
+        "nombre": "Janeth",
+        "apellido": "Ramos",
+        "telefono": "04128065269",
+        "email": "",
+        "parentesco": ""
+      }
+    },
+    {
+      "cedula": "11903218-1",
+      "nombre": "Valeria",
+      "apellido": "Ramos",
+      "fn": "",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "BENJAMÍN",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "11903218",
+        "nombre": "Janeth",
+        "apellido": "Ramos",
+        "telefono": "04128065269",
+        "email": "",
+        "parentesco": ""
+      }
+    },
+    {
+      "cedula": "19650993-1",
+      "nombre": "Charlotte",
+      "apellido": "Rodríguez",
+      "fn": "",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "BENJAMÍN",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "19650993",
+        "nombre": "Yoselin",
+        "apellido": "Aponte",
+        "telefono": "04242980356",
+        "email": "",
+        "parentesco": ""
+      }
+    },
+    {
+      "cedula": "33910473",
+      "nombre": "MARIANA",
+      "apellido": "VALDEZ",
+      "fn": "",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "CADETE",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "24215385",
+        "nombre": "LEÓNIDAS",
+        "apellido": "VALDEZ",
+        "telefono": "04129527030",
+        "email": "",
+        "parentesco": ""
+      }
+    },
+    {
+      "cedula": "36117712",
+      "nombre": "Jerwelis",
+      "apellido": "Villanueva",
+      "fn": "",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "CADETE",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "18492165",
+        "nombre": "Ana",
+        "apellido": "Meléndez",
+        "telefono": "04126114824",
+        "email": "",
+        "parentesco": ""
       }
     }
   ],
@@ -593,6 +591,66 @@
       "tasa": 888.1183,
       "metodo_pago": "Efectivo",
       "referencia": "",
+      "banco_origen": "",
+      "telefono_origen": "",
+      "estado": "pagado"
+    },
+    {
+      "cedula": "34671276",
+      "fecha": "2026-10-30",
+      "fecha_quincena": "2026-10-30",
+      "numero_quincena": 2,
+      "monto": 6892.55,
+      "moneda": "USD",
+      "monto_bs": 0,
+      "tasa": 889.2553,
+      "metodo_pago": "Pago Móvil",
+      "referencia": "00000001",
+      "banco_origen": "",
+      "telefono_origen": "",
+      "estado": "pagado"
+    },
+    {
+      "cedula": "34671276",
+      "fecha": "2026-10-30",
+      "fecha_quincena": "2026-10-30",
+      "numero_quincena": 3,
+      "monto": 4446.28,
+      "moneda": "USD",
+      "monto_bs": 0,
+      "tasa": 889.2553,
+      "metodo_pago": "Pago Móvil",
+      "referencia": "000002",
+      "banco_origen": "",
+      "telefono_origen": "",
+      "estado": "pagado"
+    },
+    {
+      "cedula": "36279460",
+      "fecha": "2026-10-30",
+      "fecha_quincena": "2026-10-30",
+      "numero_quincena": 1,
+      "monto": 13338.83,
+      "moneda": "USD",
+      "monto_bs": 0,
+      "tasa": 889.2553,
+      "metodo_pago": "Efectivo",
+      "referencia": "000001",
+      "banco_origen": "",
+      "telefono_origen": "",
+      "estado": "pagado"
+    },
+    {
+      "cedula": "36226120",
+      "fecha": "2026-10-31",
+      "fecha_quincena": "2026-10-30",
+      "numero_quincena": 1,
+      "monto": 5,
+      "moneda": "USD",
+      "monto_bs": 0,
+      "tasa": 889.5754,
+      "metodo_pago": "Efectivo",
+      "referencia": "0000012",
       "banco_origen": "",
       "telefono_origen": "",
       "estado": "pagado"
