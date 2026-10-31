@@ -154,6 +154,15 @@ export function eliminarPago(id){
 }
 
 export function renderPagos(){
+  const tablaPagos = document.getElementById('tabla-pagos');
+  if(tablaPagos){
+    const tr = tablaPagos.querySelector('thead tr');
+    if(tr && tr.children.length === 6){
+      const thAcciones = document.createElement('th');
+      thAcciones.textContent = 'Acciones';
+      tr.appendChild(thAcciones);
+    }
+  }
   const tb = document.getElementById('pagos-tbody'); if(!tb) return;
   const rows = all(`
     SELECT p.id, p.fecha, p.fecha_quincena, p.numero_quincena, p.monto, p.estado,
@@ -174,8 +183,9 @@ export function renderPagos(){
       <td>${p.metodo||'—'}</td>
       <td>${fmt(p.monto)}</td>
       <td><span class="badge ${badgeClase}">${p.estado||''}</span></td>
+      <td class="acciones"><button class="err" data-id="${p.id}" onclick="window.eliminarPago(${p.id})" title="Eliminar pago">🗑️</button></td>
     </tr>`;
-  }).join('') || `<tr><td colspan="6" class="muted center">Sin pagos.</td></tr>`;
+  }).join('') || `<tr><td colspan="7" class="muted center">Sin pagos.</td></tr>`;
 
   renderPagosPendientes();
 }
