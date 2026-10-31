@@ -69,3 +69,10 @@ export function resetPassToggle(inputId) {
   const btn = document.querySelector(`button[data-toggle-pass="${inputId}"]`);
   if (btn) { btn.textContent = '👁'; btn.setAttribute('aria-label', 'Mostrar clave'); }
 }
+
+
+/* --- Formato de moneda venezolano --- */
+export const fmtVE = (n) => {
+  const num = Number(n) || 0;
+  return num.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
