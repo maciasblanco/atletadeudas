@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-10-31T20:34:48.788Z",
+  "actualizado": "2026-10-31T20:34:59.491Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -458,7 +458,7 @@
       "apellido": "Olivos",
       "fn": "",
       "deuda": 0,
-      "activo": 1,
+      "activo": 0,
       "categoria": "INFANTIL",
       "escuela": "Club Aves Voladoras",
       "representante": {
