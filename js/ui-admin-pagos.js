@@ -529,37 +529,27 @@ export function actualizarCoberturaPago(){
   }
 }
 
-// --- PARCHE: Evento para botón eliminar pago ---
-const _origRenderPagos = renderPagos;
-renderPagos = function(){
-  _origRenderPagos();
-  const tb = document.getElementById('pagos-tbody');
-  if(!tb) return;
-  tb.querySelectorAll('button[data-acc="del-pago"]').forEach(b=>{
-    b.onclick = ()=> eliminarPago(Number(b.dataset.id));
-  });
-};
+/* Nota: el enganche del botón eliminar/anular se hace dentro de renderPagos()
+   usando delegación de eventos en el tbody. Ver renderPagos() más arriba. */
 
 
 // ============================================================
-// PARCHE DEFINITIVO: Sobrescribir eliminación de pagos por anulación
+// Anulación de pago (borrado lógico) — única definición
 // ============================================================
 window.eliminarPago = async function(id){
-  if(confirmar('¿Anular este pago? Ya no contará para la deuda, pero quedará registrado en el historial como anulado.')){
-    state.db.run("UPDATE pagos SET estado='anulado' WHERE id=?", [id]);
-    await guardarBDEnIDB();
-    renderPagos();
-    if (typeof window.renderAtletas === 'function') window.renderAtletas();
-    if(typeof window.refrescarAdmin === 'function') window.refrescarAdmin();
-    
-    // Forzar sincronización con GitHub
-    if(typeof window.subirAGitHub === 'function') {
-      const res = await window.subirAGitHub();
-      if(res.ok) {
-        window.showMsg(document.getElementById('pago-msg'), 'ok', '✅ Pago anulado y actualizado en GitHub.');
-      } else {
-        window.showMsg(document.getElementById('pago-msg'), 'err', '⚠️ Anulado localmente, pero falló en GitHub.');
-      }
+  if(!confirmar('¿Anular este pago? Ya no contará para la deuda, pero quedará registrado como anulado.')) return;
+  state.db.run("UPDATE pagos SET estado='anulado' WHERE id=?", [id]);
+  await guardarBDEnIDB();
+  renderPagos();
+  if (typeof window.renderAtletas === 'function') window.renderAtletas();
+  if(typeof window.refrescarAdmin === 'function') window.refrescarAdmin();
+
+  const msg = document.getElementById('pago-msg');
+  if(typeof window.subirAGitHub === 'function') {
+    const res = await window.subirAGitHub();
+    if(msg){
+      if(res.ok) window.showMsg(msg, 'ok', '✅ Pago anulado y actualizado en GitHub.');
+      else window.showMsg(msg, 'err', '⚠️ Anulado localmente, pero falló GitHub.');
     }
   }
 };

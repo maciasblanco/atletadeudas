@@ -7,23 +7,20 @@ import { hoyISO, fmt, normalizarCedula, showMsg, hideMsg, avisar, confirmar, res
 import { calcularMoraAtleta, calcularDeudaAtleta } from './quincenas.js';
 import { calcularCategoriaPorEdad } from './categorias.js';
 
-export function eliminarAtleta(id){
-  if(confirmar('¿Eliminar este atleta? Se borrarán sus datos y su historial de pagos. Esta acción no se puede deshacer.')){
-    state.db.run('DELETE FROM pagos WHERE atleta_id=?', [id]);
-    state.db.run('DELETE FROM atletas WHERE id=?', [id]);
-    await guardarBDEnIDB();
-    renderAtletas();
-    if(typeof window.refrescarAdmin === 'function') window.refrescarAdmin();
-    
-    // Forzar subida a GitHub y esperar a que termine para que no vuelva a bajar al atleta
-    if(typeof window.subirAGitHub === 'function') {
-      window.showMsg(document.getElementById('atleta-form-msg'), 'info', 'Sincronizando borrado con GitHub...');
-      const res = await window.subirAGitHub();
-      if(res.ok) {
-        window.showMsg(document.getElementById('atleta-form-msg'), 'ok', '✅ Atleta eliminado y actualizado en GitHub.');
-      } else {
-        window.showMsg(document.getElementById('atleta-form-msg'), 'err', '⚠️ Eliminado localmente, pero falló en GitHub. Revisa internet.');
-      }
+export async function eliminarAtleta(id){
+  if(!confirmar('¿Desactivar este atleta? Dejará de aparecer en la lista, pero sus pagos se conservarán.')) return;
+  state.db.run('UPDATE atletas SET activo=0 WHERE id=?', [id]);
+  await guardarBDEnIDB();
+  renderAtletas();
+  if(typeof window.refrescarAdmin === 'function') window.refrescarAdmin();
+
+  const msg = document.getElementById('atleta-form-msg');
+  if(typeof window.subirAGitHub === 'function') {
+    if(msg) window.showMsg(msg, 'info', 'Sincronizando cambio con GitHub...');
+    const res = await window.subirAGitHub();
+    if(msg){
+      if(res.ok) window.showMsg(msg, 'ok', '✅ Atleta desactivado y actualizado en GitHub.');
+      else window.showMsg(msg, 'err', '⚠️ Desactivado localmente, pero falló GitHub.');
     }
   }
 }

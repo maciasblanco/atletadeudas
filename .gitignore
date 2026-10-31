@@ -1,2 +1,14 @@
-datos/atletas.json
-AtletaDeudas/
+# Backups generados por aplicar.js
+backup_*/
+backup_*
+*.sqlite
+*.db
+*.sqlite3
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Sistema
+.DS_Store
+Thumbs.db

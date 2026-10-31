@@ -1,34 +1,57 @@
-module.exports = {
-  descripcion: 'Forzar borrado logico en pagos usando reemplazo de funcion al final del archivo',
-  operaciones: [
-    {
-      tipo: 'agregarAlFinal',
-      archivo: 'js/ui-admin-pagos.js',
-      contenido: `
+/* ============================================================
+   cambios.js — Ignorar backups en git y limpiar los ya subidos
+   ============================================================ */
 
-// ============================================================
-// PARCHE DEFINITIVO: Sobrescribir eliminación de pagos por anulación
-// ============================================================
-window.eliminarPago = async function(id){
-  if(confirmar('¿Anular este pago? Ya no contará para la deuda, pero quedará registrado en el historial como anulado.')){
-    state.db.run("UPDATE pagos SET estado='anulado' WHERE id=?", [id]);
-    await guardarBDEnIDB();
-    renderPagos();
-    if (typeof window.renderAtletas === 'function') window.renderAtletas();
-    if(typeof window.refrescarAdmin === 'function') window.refrescarAdmin();
-    
-    // Forzar sincronización con GitHub
-    if(typeof window.subirAGitHub === 'function') {
-      const res = await window.subirAGitHub();
-      if(res.ok) {
-        window.showMsg(document.getElementById('pago-msg'), 'ok', '✅ Pago anulado y actualizado en GitHub.');
-      } else {
-        window.showMsg(document.getElementById('pago-msg'), 'err', '⚠️ Anulado localmente, pero falló en GitHub.');
-      }
-    }
-  }
-};
+module.exports = {
+  descripcion: 'Agregar .gitignore para backups y borrar backups existentes del repo',
+  operaciones: [
+
+    /* 1) Crear/actualizar .gitignore */
+    {
+      tipo: 'sobrescribir',
+      archivo: '.gitignore',
+      contenido: `# Backups generados por aplicar.js
+backup_*/
+backup_*
+*.sqlite
+*.db
+*.sqlite3
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Sistema
+.DS_Store
+Thumbs.db
 `
+    },
+
+    /* 2) Borrar los archivos de backup locales del working tree
+          (no toca el historial de git, solo los archivos actuales) */
+    {
+      tipo: 'borrar',
+      archivo: 'backup_2026-10-31T20-10-50/js__ui-admin-atletas.js'
+    },
+    {
+      tipo: 'borrar',
+      archivo: 'backup_2026-10-31T20-10-50/js__ui-admin-pagos.js'
+    },
+    {
+      tipo: 'borrar',
+      archivo: 'backup_2026-10-31T20-10-50/js__schema.js'
+    },
+    {
+      tipo: 'borrar',
+      archivo: 'backup_2026-10-31T20-10-50/app.js'
+    },
+    {
+      tipo: 'borrar',
+      archivo: 'backup_2026-10-31T20-13-33/js__schema.js'
+    },
+    {
+      tipo: 'borrar',
+      archivo: 'backup_2026-10-31T20-13-33/app.js'
     }
   ]
 };
