@@ -11,10 +11,20 @@ export function eliminarAtleta(id){
   if(confirmar('¿Eliminar este atleta? Se borrarán sus datos y su historial de pagos. Esta acción no se puede deshacer.')){
     state.db.run('DELETE FROM pagos WHERE atleta_id=?', [id]);
     state.db.run('DELETE FROM atletas WHERE id=?', [id]);
-    guardarBDEnIDB();
+    await guardarBDEnIDB();
     renderAtletas();
     if(typeof window.refrescarAdmin === 'function') window.refrescarAdmin();
-    if(typeof window.subirAGitHub === 'function') window.subirAGitHub();
+    
+    // Forzar subida a GitHub y esperar a que termine para que no vuelva a bajar al atleta
+    if(typeof window.subirAGitHub === 'function') {
+      window.showMsg(document.getElementById('atleta-form-msg'), 'info', 'Sincronizando borrado con GitHub...');
+      const res = await window.subirAGitHub();
+      if(res.ok) {
+        window.showMsg(document.getElementById('atleta-form-msg'), 'ok', '✅ Atleta eliminado y actualizado en GitHub.');
+      } else {
+        window.showMsg(document.getElementById('atleta-form-msg'), 'err', '⚠️ Eliminado localmente, pero falló en GitHub. Revisa internet.');
+      }
+    }
   }
 }
 
@@ -217,6 +227,25 @@ renderAtletas = function(){
   const tb = document.getElementById('atletas-tbody');
   if(!tb) return;
   tb.querySelectorAll('button[data-acc="delete"]').forEach(b=>{
-    b.onclick = ()=> eliminarAtleta(Number(b.dataset.id));
+    b.onclick = async ()=> {
+      const id = Number(b.dataset.id);
+      if(confirmar('¿Desactivar este atleta? Dejará de aparecer en la lista, pero sus pagos se conservarán.')){
+        state.db.run('UPDATE atletas SET activo=0 WHERE id=?', [id]);
+        await guardarBDEnIDB();
+        renderAtletas();
+        if(typeof window.refrescarAdmin === 'function') window.refrescarAdmin();
+        
+        const msg = document.getElementById('atleta-form-msg');
+        if(typeof window.subirAGitHub === 'function') {
+          if(msg) showMsg(msg, 'info', 'Sincronizando borrado con GitHub...');
+          const res = await window.subirAGitHub();
+          if(res.ok) {
+            if(msg) showMsg(msg, 'ok', '✅ Atleta eliminado y actualizado en GitHub.');
+          } else {
+            if(msg) showMsg(msg, 'err', '⚠️ Eliminado localmente, pero falló en GitHub. Revisa internet.');
+          }
+        }
+      }
+    };
   });
 };
