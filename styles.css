@@ -1,206 +1,353 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+/* ============================================================
+   styles.css — AtletaDeudas (Optimizado)
+   ============================================================ */
 
 :root {
-  --bg: #080d1a;
-  --card: #111a2e;
-  --card-sub: #17233d;
-  --border: #1e2d4a;
-  --azul-glow: #3b82f6;
-  --azul-grad: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  --bg: #0b1020;
+  --bg-card: #111a2e;
+  --border: #1e2a45;
+  --text: #e6edf7;
+  --muted: #9aa7c7;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --secondary: #1e2a45;
+  --secondary-hover: #2a3a5c;
   --ok: #10b981;
-  --ok-grad: linear-gradient(135deg, #10b981 0%, #047857 100%);
   --warn: #f59e0b;
-  --warn-grad: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
   --err: #ef4444;
-  --err-grad: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
-  --txt: #f8fafc;
-  --muted: #94a3b8;
-  --oro: #fbbf24;
-  --glass: rgba(17, 26, 46, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.08);
 }
 
-* { box-sizing: border-box; }
-
-html, body {
-  margin: 0; padding: 0;
-  background: var(--bg); color: var(--txt);
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  -webkit-tap-highlight-color: transparent;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 body {
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  background: radial-gradient(circle at 50% 0%, #172545 0%, #080d1a 70%);
-  background-attachment: fixed;
+  background-color: var(--bg);
+  color: var(--text);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   min-height: 100vh;
 }
 
-.wrap { max-width: 720px; margin: 0 auto; padding: 16px; }
-
-h1, h2, h3 { margin: 0 0 12px; font-weight: 800; }
-h1 { font-size: 22px; }
-h2 { font-size: 17px; display: flex; align-items: center; gap: 8px; }
+/* --- Contenedores y Tarjetas --- */
+.view {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
 
 .card {
-  background: var(--glass);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-  border-radius: 20px;
-  padding: 20px;
-  margin-bottom: 16px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-}
-.card.sub { background: var(--card-sub); border: 1px solid var(--border); }
-
-.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-@media (max-width: 480px) { .grid3 { grid-template-columns: 1fr 1fr; } }
-
-label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin: 10px 0 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-
-input, select, button, textarea { font-size: 15px; font-family: inherit; border-radius: 12px; outline: none; }
-input, select, textarea {
-  width: 100%; padding: 12px 14px;
+  background: var(--bg-card);
   border: 1px solid var(--border);
-  background: #0d1526; color: var(--txt);
-  transition: all 0.2s;
-}
-input:focus, select:focus, textarea:focus {
-  border-color: var(--azul-glow);
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
-}
-
-button {
-  background: var(--azul-grad);
-  color: #fff; border: none; padding: 12px 18px;
-  font-weight: 700; cursor: pointer;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-  transition: all 0.2s ease;
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-}
-button:hover { transform: translateY(-1px); filter: brightness(1.1); }
-button:active { transform: translateY(1px) scale(0.98); }
-
-button.ghost { background: transparent; border: 1px solid var(--border); color: var(--txt); box-shadow: none; }
-button.ok { background: var(--ok-grad); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
-button.warn { background: var(--warn-grad); color: #fff; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); }
-button.err { background: var(--err-grad); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
-.btn-block { display: flex; width: 100%; }
-
-.muted { color: var(--muted); font-size: 13px; }
-.msg { margin-top: 12px; padding: 12px 14px; border-radius: 12px; font-size: 14px; display: none; }
-.msg.show { display: block; }
-.msg.ok { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid var(--ok); }
-.msg.err { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid var(--err); }
-.msg.info { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid var(--azul-glow); }
-
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th, td { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: left; }
-th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; }
-
-.badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-.badge.ok { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid var(--ok); }
-.badge.err { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid var(--err); }
-.badge.warn { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid var(--warn); }
-
-.tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; }
-.tabs button { flex: 1; background: transparent; border: 1px solid var(--border); color: var(--txt); box-shadow: none; white-space: nowrap; }
-.tabs button.active { background: var(--azul-grad); border-color: transparent; }
-
-.hidden { display: none !important; }
-.center { text-align: center; }
-.mt8 { margin-top: 8px; } .mt12 { margin-top: 12px; } .mt16 { margin-top: 16px; }
-.small { font-size: 12px; }
-.sep { height: 1px; background: var(--border); margin: 16px 0; }
-
-fieldset { border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 14px; background: rgba(0,0,0,0.1); }
-legend { padding: 0 8px; color: var(--azul-glow); font-size: 11px; font-weight: 700; text-transform: uppercase; }
-.tabla-scroll { overflow-x: auto; }
-.acciones button { padding: 6px 8px; font-size: 12px; margin: 2px; border-radius: 8px; }
-.aviso-pendiente { margin-top: 10px; padding: 12px; border-radius: 12px; font-size: 13px; background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warn); color: #fcd34d; }
-
-@keyframes spin { 100% { transform: rotate(360deg); } }
-
-/* Clases específicas para el header superior */
-.app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  background: var(--glass);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-  border-radius: 20px;
+  border-radius: 12px;
+  padding: 24px;
   margin-bottom: 20px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
-.brand { display: flex; align-items: center; gap: 12px; }
-.brand-logo-img {
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  object-fit: cover;
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
-  border: 2px solid var(--azul-glow);
-}
-.brand-title { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; margin: 0; color: #fff; }
-.brand-title span { color: var(--azul-glow); }
 
-/* ============================================================
-   Inputs con botón "ojo" para mostrar/ocultar contraseña
-   ============================================================ */
-.input-pass {
+#view-login .card {
+  max-width: 450px;
+  margin: 40px auto;
+}
+
+/* --- Tipografía --- */
+h1, h2, h3, h4 {
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+h1 { font-size: 24px; }
+h2 { font-size: 20px; }
+h3 { font-size: 18px; margin-top: 10px; }
+h4 { font-size: 14px; text-transform: uppercase; color: var(--muted); margin-top: 20px; margin-bottom: 10px; }
+
+p { margin-bottom: 10px; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.center { text-align: center; }
+
+/* --- Formularios --- */
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 6px;
+  margin-top: 16px;
+  text-transform: uppercase;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 12px;
+  background: #0a1220;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input:focus, select:focus {
+  border-color: var(--primary);
+}
+
+input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --- Botones --- */
+button {
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+button.primary {
+  background: var(--primary);
+  color: #fff;
+}
+button.primary:hover { background: var(--primary-hover); }
+
+button.secondary {
+  background: var(--secondary);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+button.secondary:hover { background: var(--secondary-hover); }
+
+button.small { padding: 8px 12px; font-size: 12px; }
+
+button.ok { background: var(--ok); color: #fff; }
+button.err { background: var(--err); color: #fff; }
+
+/* --- Botones de ancho completo --- */
+#login-atleta-form .primary, 
+#login-admin-form .primary,
+#btn-sync-login,
+#btn-reportar-aporte,
+#btn-guardar-config {
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* --- Ojos de contraseña (pass-wrap) --- */
+.pass-wrap {
   position: relative;
   width: 100%;
 }
 
-.input-pass input {
-  width: 100%;
-  /* Espacio a la derecha para que el texto no quede debajo del botón */
-  padding-right: 46px;
+.pass-wrap input {
+  padding-right: 45px;
 }
 
-.input-pass .btn-pass {
+.pass-wrap .btn-eye {
   position: absolute;
+  right: 8px;
   top: 50%;
-  right: 6px;
   transform: translateY(-50%);
-  width: 34px;
-  height: 34px;
-  min-height: 0;
-  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 20px;
+  padding: 5px;
+  width: auto;
+  margin: 0;
+  box-shadow: none;
+}
+
+.pass-wrap .btn-eye:hover {
+  color: #fff;
+  background: transparent;
+}
+
+/* --- Pestañas (Tabs) --- */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tabs button {
+  flex: 1;
+  background: #0a1220;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.tabs button.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+/* --- Tablas --- */
+.tabla-scroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* --- Badges (Etiquetas de estado) --- */
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.badge.ok { background: rgba(16, 185, 129, 0.2); color: var(--ok); }
+.badge.warn { background: rgba(245, 158, 11, 0.2); color: var(--warn); }
+.badge.err { background: rgba(239, 68, 68, 0.2); color: var(--err); }
+
+/* --- Filas especiales --- */
+.fila-no-practica {
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+/* --- Utilidades --- */
+.hidden { display: none !important; }
+.mt-1 { margin-top: 10px; }
+.mt-2 { margin-top: 20px; }
+.row { display: flex; align-items: center; }
+.gap { gap: 10px; }
+.space-between { justify-content: space-between; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+@media (max-width: 600px) {
+  .grid-2 { grid-template-columns: 1fr; }
+  .card { padding: 16px; }
+}
+
+/* --- Mensajes de alerta --- */
+.msg {
+  display: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-top: 15px;
+}
+
+.msg.show { display: block; }
+.msg.ok { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid var(--ok); }
+.msg.err { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid var(--err); }
+.msg.info { background: rgba(37, 99, 235, 0.15); color: #93c5fd; border: 1px solid var(--primary); }
+
+/* --- Aviso de pendientes --- */
+.aviso-pendiente {
+  margin-top: 15px;
+  padding: 12px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid var(--warn);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #fcd34d;
+}
+
+/* ============================================================
+   Botón circular "Actualizar sistema" (⟳)
+   ============================================================ */
+.btn-sync-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  color: var(--text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  color: var(--muted);
-  font-size: 16px;
-  line-height: 1;
+  padding: 0;
+  margin: 0 auto;
   cursor: pointer;
-  border-radius: 8px;
-  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  transition: background 0.2s, transform 0.15s;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
 }
 
-.input-pass .btn-pass:hover {
-  background: rgba(59, 130, 246, 0.15);
-  color: var(--txt);
-  transform: translateY(-50%) scale(1.05);
+.btn-sync-circle:hover {
+  background: var(--secondary-hover);
 }
 
-.input-pass .btn-pass:active {
-  transform: translateY(-50%) scale(0.95);
-  filter: none;
+.btn-sync-circle:active {
+  transform: scale(0.94);
 }
 
-.input-pass .btn-pass:focus-visible {
-  outline: 2px solid var(--azul-glow);
-  outline-offset: 2px;
+.btn-sync-circle .sync-icon {
+  font-size: 26px;
+  line-height: 1;
+  display: inline-block;
+  transition: transform 0.3s;
 }
 
-/* Ajuste para móviles: un poco más compacto */
-@media (max-width: 480px) {
-  .input-pass input { padding-right: 42px; }
-  .input-pass .btn-pass { width: 30px; height: 30px; font-size: 15px; right: 5px; }
+/* Animación de giro mientras sincroniza */
+.btn-sync-circle.syncing .sync-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+
+/* ============================================================
+   Ajuste visual del botón circular "Actualizar sistema"
+   - Fondo verde claro
+   - Ícono (flecha) azul oscuro
+   ============================================================ */
+.btn-sync-circle {
+  background: #86efac !important;      /* verde claro */
+  color: #0b1e4a !important;           /* azul oscuro */
+  border: 1px solid #4ade80 !important;
+}
+
+.btn-sync-circle:hover {
+  background: #4ade80 !important;      /* verde un poco más intenso al pasar el mouse */
+}
+
+.btn-sync-circle .sync-icon {
+  color: #0b1e4a !important;           /* flecha azul oscuro */
 }

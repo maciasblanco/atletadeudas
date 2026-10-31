@@ -1,336 +1,420 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#080d1a" />
-<title>AtletaDeudas — Control de aportes y pagos</title>
-<link rel="manifest" href="manifest.json" />
-<link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AtletaDeudas — Club Aves Voladoras</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <meta name="theme-color" content="#0b1020">
 </head>
 <body>
-<div class="wrap">
 
-  <header class="app-header">
-    <div class="brand">
-      <img class="brand-logo-img" src="icons/launchericon-192x192.png" alt="Atleta Logo" />
-      <h1 class="brand-title">Atleta<span>Deudas</span></h1>
+  <!-- ================= VISTA: CARGANDO ================= -->
+  <div id="view-loading" class="view">
+    <div class="card center">
+      <h1>AtletaDeudas</h1>
+      <p class="muted">Cargando base de datos…</p>
     </div>
-  </header>
-
-  <div id="view-loading" class="card center">
-    <h1>AtletaDeudas</h1>
-    <p class="muted">Cargando base de datos…</p>
   </div>
 
-  <div id="view-login" class="card hidden">
-    <h1 class="center">Iniciar Sesión</h1>
-    <p class="muted center">Control de aportes y pagos</p>
-    <label>Cédula</label>
-    <input id="login-cedula" inputmode="numeric" autocomplete="username" placeholder="Ingresa tu cédula" />
-    <label>Clave</label>
-    <div class="input-pass">
-      <input id="login-clave" type="password" autocomplete="current-password" placeholder="Ingresa tu clave" />
-      <button type="button" class="btn-pass" data-toggle-pass="login-clave" aria-label="Mostrar u ocultar clave">👁</button>
-    </div>
-    <div class="grid2 mt12">
-      <button id="btn-login-atleta">Entrar como atleta</button>
-      <button id="btn-login-admin" class="ghost">Entrar como admin</button>
-    </div>
-    <div id="login-msg" class="msg"></div>
-    <div class="sep"></div>
-    <button id="btn-sync-login" class="ghost btn-block">🔄 Sincronizar datos</button>
-    <div id="sync-login-msg" class="msg"></div>
-  </div>
-
-  <div id="view-atleta" class="hidden">
+  <!-- ================= VISTA: LOGIN ================= -->
+  <div id="view-login" class="view hidden">
     <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <h1 style="margin: 0;">Hola, <span id="atleta-nombre" style="color: var(--azul-glow);">—</span></h1>
-          <p class="muted" style="margin: 4px 0 0;">Cédula: <span id="atleta-cedula">—</span></p>
-        </div>
-        <button id="btn-logout-atleta" class="ghost small">Salir</button>
+      <h1>AtletaDeudas</h1>
+      <p class="muted">Club Aves Voladoras</p>
+
+      <label>Cédula</label>
+      <input id="login-cedula" type="text" placeholder="V-12345678" autocomplete="username">
+
+      <label>Clave</label>
+      <div class="pass-wrap">
+        <input id="login-clave" type="password" placeholder="••••••" autocomplete="current-password">
+        <button type="button" data-toggle-pass="login-clave" class="btn-eye" aria-label="Mostrar clave">👁</button>
       </div>
 
-      <div class="grid2 mt12">
-        <div class="card sub center" style="border-left: 4px solid var(--oro);">
-          <div class="muted small">Total Adeudado</div>
-          <div id="atleta-deuda-bs" style="font-size:26px; font-weight:800; color:var(--oro); margin: 4px 0;">—</div>
+      <div class="row gap mt-2">
+        <button id="btn-login-atleta" class="primary">Entrar como Atleta</button>
+        <button id="btn-login-admin" class="secondary">Entrar como Admin</button>
+      </div>
+
+      <div id="login-msg" class="msg"></div>
+
+      <div class="mt-2 center">
+        <button id="btn-sync-login" class="btn-sync-circle" title="Actualizar sistema" aria-label="Actualizar sistema">
+          <span class="sync-icon">⟳</span>
+        </button>
+        <div class="muted small mt-1">Actualizar sistema</div>
+        <div id="sync-login-msg" class="msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= VISTA: ATLETA ================= -->
+  <div id="view-atleta" class="view hidden">
+    <div class="card">
+      <div class="row space-between">
+        <h2 id="atleta-nombre">—</h2>
+        <button id="btn-logout-atleta" class="secondary small">Salir</button>
+      </div>
+      <p class="muted">Cédula: <span id="atleta-cedula">—</span></p>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">Estado</div>
+          <div id="atleta-estado" class="stat-val">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Deuda</div>
+          <div id="atleta-deuda-bs" class="stat-val">—</div>
           <div id="atleta-deuda-usd" class="muted small">—</div>
-          <div id="atleta-deuda-detalle" class="muted small" style="margin-top:2px;">—</div>
-        </div>
-        <div class="card sub center">
-          <div class="muted small">Estado Actual</div>
-          <div id="atleta-estado" style="font-size:18px; font-weight:700; margin-top:8px;">—</div>
         </div>
       </div>
-      <div class="grid2 mt12">
-        <button id="btn-sync-atleta">🔄 Sincronizar</button>
-        <button id="btn-ver-pagos" class="ghost">📋 Mis pagos</button>
-      </div>
-      <div id="sync-atleta-msg" class="msg"></div>
-    </div>
+      <div id="atleta-deuda-detalle" class="muted small"></div>
 
-    <div id="card-reportar-aporte" class="card">
-      <h2>💸 Reportar mi aporte</h2>
-      
-      <!-- NUEVA CAJA DE DATOS BANCARIOS -->
-      <div class="card sub" style="background: rgba(59, 130, 246, 0.1); border: 1px solid var(--azul-glow); margin-bottom: 12px;">
-        <div style="font-size: 14px; line-height: 1.6;">
-          <strong>🏦 Datos para la transferencia:</strong><br>
-          <strong>Banco:</strong> Mercantil (0105)<br>
-          <strong>Cédula:</strong> V-11408051<br>
-          <strong>Teléfono:</strong> 0426-2137308<br>
-          <strong>Monto a transferir:</strong> <span id="monto-a-pagar" style="color: var(--oro); font-weight: bold; font-size: 16px;">—</span>
-        </div>
+      <div id="ra-resumen" class="mt-2"></div>
+
+      <div class="mt-2">
+        <button id="btn-ver-pagos" class="secondary">Ver historial de pagos</button>
       </div>
 
-      <p class="muted small">
-        Tu aporte quedará pendiente de verificación por el administrador.
-      </p>
-      <div id="ra-resumen" class="card sub" style="margin-bottom:12px;font-size:13px;line-height:1.5;"></div>
-      <div class="grid2">
-        <div>
-          <label>Monto ($) *</label>
-          <input id="ra-monto" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" />
-        </div>
-        <div>
-          <label>Método de pago *</label>
-          <select id="ra-metodo"><option value="">— Seleccione —</option></select>
-        </div>
-      </div>
-      <label>Referencia / N° Comprobante</label>
-      <input id="ra-referencia" type="text" maxlength="60" placeholder="Ej: 0001234567" />
-      <label>Nota (opcional)</label>
-      <input id="ra-nota" type="text" maxlength="120" placeholder="Ej: Pago quincena" />
-      <button id="btn-reportar-aporte" class="btn-block mt12">📤 Enviar reporte</button>
-      <div id="ra-msg" class="msg"></div>
-    </div>
-
-    <div id="atleta-pagos-card" class="card hidden">
-      <h2>Historial de pagos</h2>
-      <div class="tabla-scroll">
+      <div id="atleta-pagos-card" class="mt-2 hidden">
         <table>
-          <thead><tr><th>Fecha</th><th>Monto</th><th>Ref.</th><th>Quincena</th><th>Estado</th></tr></thead>
+          <thead>
+            <tr><th>Fecha</th><th>Monto</th><th>Ref.</th><th>Quincena</th><th>Estado</th></tr>
+          </thead>
           <tbody id="atleta-pagos-tbody"></tbody>
         </table>
       </div>
     </div>
-  </div>
 
-  <div id="view-admin" class="hidden">
-    <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h1 style="margin: 0;">Panel Admin</h1>
-        <button id="btn-logout-admin" class="ghost small">Salir</button>
-      </div>
-      <div class="tabs" id="admin-tabs">
-        <button data-tab="atletas" class="active">Atletas</button>
-        <button data-tab="pagos">Pagos</button>
-        <button data-tab="config">Config</button>
-      </div>
+    <div class="card mt-2">
+      <h3>Reportar aporte</h3>
+      <label>Monto (USD)</label>
+      <input id="ra-monto" type="number" step="0.01" placeholder="5.00">
+      <label>Método de pago</label>
+      <select id="ra-metodo"></select>
+      <label>Referencia</label>
+      <input id="ra-referencia" type="text" placeholder="Nro. referencia">
+      <label>Nota (opcional)</label>
+      <input id="ra-nota" type="text" placeholder="Observación">
+      <button id="btn-reportar-aporte" class="primary">Enviar aporte</button>
+      <div id="ra-msg" class="msg"></div>
     </div>
 
-    <div id="tab-atletas" class="tab">
-      <div class="card">
-        <h2>Agregar / Editar Atleta</h2>
-        <form id="form-atleta" autocomplete="off">
-          <input type="hidden" id="atleta_id" />
-          <fieldset>
-            <legend>Datos del Atleta</legend>
-            <div class="grid2">
-              <div><label>Cédula *</label><input id="identificacion" required /></div>
-              <div><label>Categoría</label>
-                <select id="categoria">
-                  <option value="">— Seleccione —</option>
-                  <option>SEMILLAS</option>
-                  <option>MINI</option>
-                  <option>INFANTIL</option>
-                  <option>PRE-JUVENIL</option>
-                  <option>JUVENIL</option>
-                  <option>MAYOR</option>
-                </select>
-              </div>
-              <div><label>Primer Nombre *</label><input id="p_nombre" required /></div>
-              <div><label>Segundo Nombre</label><input id="s_nombre" /></div>
-              <div><label>Primer Apellido *</label><input id="p_apellido" required /></div>
-              <div><label>Segundo Apellido</label><input id="s_apellido" /></div>
-              <div><label>Fecha Nacimiento</label><input id="fn" type="date" /></div>
-              <div><label>Escuela</label><input id="escuela" value="Club Aves Voladoras" /></div>
-              <div><label>Teléfono Atleta</label><input id="cell" /></div>
-              <div><label>Teléfono Emergencia</label><input id="telf_emergencia1" /></div>
-              <div style="grid-column: 1 / -1;">
-                <label>Clave (Login)</label>
-                <div class="input-pass">
-                  <input id="clave_atleta" type="password" placeholder="Por defecto: 4 últimos dígitos" />
-                  <button type="button" class="btn-pass" data-toggle-pass="clave_atleta" aria-label="Mostrar u ocultar clave">👁</button>
-                </div>
-              </div>
-            </div>
-          </fieldset>
-          <fieldset>
-            <legend>Representante</legend>
-            <div class="grid2">
-              <div><label>Cédula Rep. *</label><input id="rep_identificacion" required /></div>
-              <div><label>Parentesco</label>
-                <select id="rep_parentesco">
-                  <option value="">—</option>
-                  <option>MADRE</option><option>PADRE</option><option>ABUELO/A</option>
-                  <option>TÍO/A</option><option>HERMANO/A</option><option>OTRO</option>
-                </select>
-              </div>
-              <div><label>Nombre Rep. *</label><input id="rep_nombre" required /></div>
-              <div><label>Apellido Rep. *</label><input id="rep_apellido" required /></div>
-              <div><label>Teléfono Rep.</label><input id="rep_telefono" /></div>
-              <div><label>Email Rep.</label><input id="rep_email" type="email" /></div>
-            </div>
-          </fieldset>
-          <div class="grid2 mt12">
-            <button type="submit">Guardar Atleta</button>
-            <button type="button" class="ghost" id="btn-limpiar-atleta">Limpiar</button>
-          </div>
-        </form>
-        <div id="atleta-form-msg" class="msg"></div>
-      </div>
+    <div class="card mt-2 center">
+      <button id="btn-sync-atleta" class="btn-sync-circle" title="Actualizar sistema" aria-label="Actualizar sistema">
+        <span class="sync-icon">⟳</span>
+      </button>
+      <div class="muted small mt-1">Actualizar sistema</div>
+      <div id="sync-atleta-msg" class="msg"></div>
+    </div>
+  </div>
 
-      <div class="card">
-        <h2>Listado de Atletas</h2>
-        <input id="buscar-atleta" placeholder="Buscar por cédula, nombre..." />
-        <div class="tabla-scroll mt12">
-          <table id="tabla-atletas">
-            <thead><tr>
-              <th>Cédula</th><th>Nombre</th><th>Representante</th>
-              <th>Categoría</th><th>Deuda (Bs)</th><th>Estado</th><th>Acciones</th>
-            </tr></thead>
+  <!-- ================= VISTA: ADMIN ================= -->
+  <div id="view-admin" class="view hidden">
+    <div class="card">
+      <div class="row space-between">
+        <h2>Panel Administrador</h2>
+        <button id="btn-logout-admin" class="secondary small">Salir</button>
+      </div>
+      <div id="diag" class="muted small"></div>
+    </div>
+
+    <div id="admin-tabs" class="tabs mt-2">
+      <button class="active" data-tab="atletas">Atletas</button>
+      <button data-tab="pagos">Pagos</button>
+      <button data-tab="config">Configuración</button>
+    </div>
+
+    <!-- TAB: ATLETAS -->
+    <div id="tab-atletas" class="tab-content">
+      <div class="card mt-2">
+        <h3>Atletas</h3>
+        <input id="buscar-atleta" type="text" placeholder="Buscar por cédula, nombre o representante…">
+        <div class="tabla-scroll mt-2">
+          <table>
+            <thead>
+              <tr>
+                <th>Cédula</th><th>Nombre</th><th>Representante</th><th>Categoría</th><th>Deuda</th><th>Estado</th><th>Acciones</th>
+              </tr>
+            </thead>
             <tbody id="atletas-tbody"></tbody>
           </table>
         </div>
       </div>
-    </div>
 
-    <div id="tab-pagos" class="tab hidden">
-      <div class="card">
-        <h2>⏳ Pagos Pendientes</h2>
-        <div id="lista-pagos-pendientes">
-          <p class="muted small">Cargando...</p>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Registrar Pago</h2>
-        <form id="form-pago" autocomplete="off">
-          <div id="pago-resumen-atleta" class="card sub" style="display:none; margin-bottom:12px;">
-            <div id="pago-resumen-texto"></div>
+      <div class="card mt-2">
+        <h3>Formulario Atleta</h3>
+        <form id="form-atleta">
+          <input type="hidden" id="atleta_id">
+          <div class="grid-2">
+            <div>
+              <label>Cédula *</label>
+              <input id="identificacion" type="text" required>
+            </div>
+            <div>
+              <label>Fecha de Nacimiento</label>
+              <input id="fn" type="date">
+            </div>
+            <div>
+              <label>Primer Nombre *</label>
+              <input id="p_nombre" type="text" required>
+            </div>
+            <div>
+              <label>Segundo Nombre</label>
+              <input id="s_nombre" type="text">
+            </div>
+            <div>
+              <label>Primer Apellido *</label>
+              <input id="p_apellido" type="text" required>
+            </div>
+            <div>
+              <label>Segundo Apellido</label>
+              <input id="s_apellido" type="text">
+            </div>
+            <div>
+              <label>Categoría</label>
+              <select id="categoria">
+                <option value="">— Seleccione —</option>
+                <option value="SEMILLAS">SEMILLAS</option>
+                <option value="MINI">MINI</option>
+                <option value="INFANTIL">INFANTIL</option>
+                <option value="PRE-JUVENIL">PRE-JUVENIL</option>
+                <option value="JUVENIL">JUVENIL</option>
+                <option value="MAYOR">MAYOR</option>
+              </select>
+            </div>
+            <div>
+              <label>Escuela</label>
+              <input id="escuela" type="text" value="Club Aves Voladoras">
+            </div>
+            <div>
+              <label>Celular</label>
+              <input id="cell" type="text">
+            </div>
+            <div>
+              <label>Teléfono Emergencia</label>
+              <input id="telf_emergencia1" type="text">
+            </div>
+            <div>
+              <label>Clave Atleta</label>
+              <div class="pass-wrap">
+                <input id="clave_atleta" type="password">
+                <button type="button" data-toggle-pass="clave_atleta" class="btn-eye" aria-label="Mostrar clave">👁</button>
+              </div>
+            </div>
           </div>
-          <div class="grid2">
-            <div><label>Atleta *</label><select id="pago_atleta" required><option value="">— Seleccione —</option></select></div>
-            <div><label>Método *</label><select id="metodo_pago_id" required><option value="">— Seleccione —</option></select></div>
-            <div><label>Fecha Pago *</label><input id="fecha" type="date" required /></div>
-            <div><label>Fecha Quincena *</label><input id="fecha_quincena" type="date" required /></div>
-            <div><label>N° Quincena</label><input id="numero_quincena" type="number" readonly /></div>
-            <div><label>Monto USD *</label><input id="monto" type="number" step="0.01" required /></div>
-            <div><label>Monto Bs</label><input id="monto_bs" type="number" step="0.01" /></div>
-            <div><label>Tasa Bs/$</label><input id="tasa" type="number" step="0.0001" value="36.50" /></div>
-            <div><label>Referencia</label><input id="referencia" /></div>
-            <div><label>Estado *</label>
-              <select id="estado" required>
-                <option value="pagado" selected>Pagado</option>
-                <option value="pendiente">Pendiente</option>
+
+          <h4 class="mt-2">Representante</h4>
+          <div class="grid-2">
+            <div>
+              <label>Cédula Rep. *</label>
+              <input id="rep_identificacion" type="text" required>
+            </div>
+            <div>
+              <label>Nombre Rep. *</label>
+              <input id="rep_nombre" type="text" required>
+            </div>
+            <div>
+              <label>Apellido Rep. *</label>
+              <input id="rep_apellido" type="text" required>
+            </div>
+            <div>
+              <label>Teléfono Rep.</label>
+              <input id="rep_telefono" type="text">
+            </div>
+            <div>
+              <label>Email Rep.</label>
+              <input id="rep_email" type="email">
+            </div>
+            <div>
+              <label>Parentesco</label>
+              <select id="rep_parentesco">
+                <option value="">— Seleccione —</option>
+                <option value="Madre">Madre</option>
+                <option value="Padre">Padre</option>
+                <option value="Abuelo/a">Abuelo/a</option>
+                <option value="Tío/a">Tío/a</option>
+                <option value="Hermano/a">Hermano/a</option>
+                <option value="Otro">Otro</option>
               </select>
             </div>
           </div>
-          <div id="pago-cobertura" class="msg info" style="display:none;"></div>
-          <label>Observación</label>
-          <textarea id="observacion" rows="2"></textarea>
-          <div class="grid2 mt12">
-            <button type="submit">Registrar Pago</button>
-            <button type="button" class="ghost" id="btn-limpiar-pago">Limpiar</button>
+
+          <div class="mt-2 row gap">
+            <button type="submit" class="primary">Guardar Atleta</button>
+            <button type="button" id="btn-limpiar-atleta" class="secondary">Limpiar</button>
           </div>
+          <div id="atleta-form-msg" class="msg"></div>
         </form>
-        <div id="pago-msg" class="msg"></div>
+      </div>
+    </div>
+
+    <!-- TAB: PAGOS -->
+    <div id="tab-pagos" class="tab-content hidden">
+      <div class="card mt-2">
+        <h3>Pagos Pendientes por Verificar</h3>
+        <div id="lista-pagos-pendientes"></div>
       </div>
 
-      <div class="card">
-        <h2>Historial de Pagos</h2>
+      <div class="card mt-2">
+        <h3>Registrar Pago Manual</h3>
+        <form id="form-pago">
+          <label>Atleta</label>
+          <select id="pago_atleta"><option value="">— Seleccione —</option></select>
+          <div id="pago-resumen-atleta" class="card mt-1" style="display:none">
+            <div id="pago-resumen-texto"></div>
+          </div>
+
+          <div class="grid-2 mt-2">
+            <div>
+              <label>Fecha Pago</label>
+              <input id="fecha" type="date">
+            </div>
+            <div>
+              <label>Fecha Quincena</label>
+              <input id="fecha_quincena" type="date">
+            </div>
+            <div>
+              <label>Número Quincena</label>
+              <input id="numero_quincena" type="text" disabled>
+            </div>
+            <div>
+              <label>Monto (USD)</label>
+              <input id="monto" type="number" step="0.01">
+            </div>
+            <div>
+              <label>Monto (Bs)</label>
+              <input id="monto_bs" type="number" step="0.01">
+            </div>
+            <div>
+              <label>Tasa</label>
+              <input id="tasa" type="number" step="0.01">
+            </div>
+            <div>
+              <label>Método de pago</label>
+              <select id="metodo_pago_id"></select>
+            </div>
+            <div>
+              <label>Referencia</label>
+              <input id="referencia" type="text">
+            </div>
+            <div>
+              <label>Banco Origen</label>
+              <input id="banco_origen" type="text">
+            </div>
+            <div>
+              <label>Teléfono Origen</label>
+              <input id="telefono_origen" type="text">
+            </div>
+            <div>
+              <label>Estado</label>
+              <select id="estado">
+                <option value="pagado">Pagado</option>
+                <option value="pendiente">Pendiente</option>
+              </select>
+            </div>
+            <div>
+              <label>Observación</label>
+              <input id="observacion" type="text">
+            </div>
+          </div>
+          <div id="pago-cobertura" class="mt-2" style="display:none"></div>
+
+          <div class="mt-2 row gap">
+            <button type="submit" class="primary">Registrar Pago</button>
+            <button type="button" id="btn-limpiar-pago" class="secondary">Limpiar</button>
+          </div>
+          <div id="pago-msg" class="msg"></div>
+        </form>
+      </div>
+
+      <div class="card mt-2">
+        <h3>Últimos Pagos</h3>
         <div class="tabla-scroll">
-          <table id="tabla-pagos">
-            <thead><tr>
-              <th>Fecha</th><th>Atleta</th><th>Quincena</th><th>Método</th><th>Monto</th><th>Estado</th>
-            </tr></thead>
+          <table>
+            <thead>
+              <tr><th>Fecha</th><th>Atleta</th><th>Quincena</th><th>Método</th><th>Monto</th><th>Estado</th></tr>
+            </thead>
             <tbody id="pagos-tbody"></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <div id="tab-config" class="tab hidden">
-      <div class="card">
-        <h2>Configuración General</h2>
-        <div class="grid2">
-          <div><label>Monto Quincena (USD)</label><input id="c-monto-quincena" type="number" step="0.01" /></div>
-          <div><label>Tasa USD (Bs)</label><input id="c-tasa-dolar" type="number" step="0.0001" /></div>
-          <div><label>Clave Admin</label>
-            <div class="input-pass">
-              <input id="c-clave-admin" type="password" />
-              <button type="button" class="btn-pass" data-toggle-pass="c-clave-admin" aria-label="Mostrar u ocultar clave">👁</button>
-            </div>
-          </div>
-          <div><label>Fecha Inicio Deuda</label><input id="c-fecha-corte" type="date" /></div>
+    <!-- TAB: CONFIG -->
+    <div id="tab-config" class="tab-content hidden">
+      <div class="card mt-2">
+        <h3>Configuración General</h3>
+        <label>Monto por Quincena (USD)</label>
+        <input id="c-monto-quincena" type="number" step="0.01">
+        <label>Tasa Dólar</label>
+        <input id="c-tasa-dolar" type="number" step="0.01">
+        <button id="btn-tasa-bcv" class="secondary mt-2">Actualizar Tasa BCV</button>
+        <div id="tasa-bcv-info" class="muted small mt-1"></div>
+
+        <label class="mt-2">Clave Admin</label>
+        <div class="pass-wrap">
+          <input id="c-clave-admin" type="password">
+          <button type="button" data-toggle-pass="c-clave-admin" class="btn-eye">👁</button>
         </div>
-        <div class="grid2 mt12">
-          <button id="btn-guardar-config">Guardar Configuración</button>
-          <button id="btn-tasa-bcv" class="ghost">🔄 Actualizar Tasa BCV</button>
+
+        <label>Cédula Admin (opcional)</label>
+        <input id="c-cedula-admin" type="text" placeholder="Vacío = solo clave">
+
+        <label>Fecha de Corte Quincena</label>
+        <input id="c-fecha-corte" type="date">
+
+        <div class="mt-2">
+          <button id="btn-guardar-config" class="primary">Guardar Configuración</button>
         </div>
-        <div id="tasa-bcv-info" class="muted small mt12"></div>
         <div id="config-msg" class="msg"></div>
       </div>
 
-      <div class="card">
-        <h2>GitHub (Almacén Remoto)</h2>
-        <div class="grid2">
-          <div><label>Usuario</label><input id="c-gh-user" /></div>
-          <div><label>Repo</label><input id="c-gh-repo" /></div>
-          <div><label>Ruta JSON</label><input id="c-gh-ruta" /></div>
-          <div><label>Rama</label><input id="c-gh-rama" /></div>
+      <div class="card mt-2">
+        <h3>Sincronización GitHub</h3>
+        <label>Usuario</label>
+        <input id="c-gh-user" type="text">
+        <label>Repositorio</label>
+        <input id="c-gh-repo" type="text">
+        <label>Ruta (archivo JSON)</label>
+        <input id="c-gh-ruta" type="text">
+        <label>Rama</label>
+        <input id="c-gh-rama" type="text">
+        <label>Token</label>
+        <div class="pass-wrap">
+          <input id="c-gh-token" type="password">
+          <button type="button" data-toggle-pass="c-gh-token" class="btn-eye">👁</button>
         </div>
-        <label>Token (Fine-grained)</label>
-        <div class="input-pass">
-          <input id="c-gh-token" type="password" />
-          <button type="button" class="btn-pass" data-toggle-pass="c-gh-token" aria-label="Mostrar u ocultar token">👁</button>
-        </div>
-        <div class="grid2 mt12">
-          <button id="btn-guardar-gh">Guardar GitHub</button>
-          <button id="btn-subir-gh" class="ok">⬆ Subir a Remoto</button>
+        
+        <div class="mt-2 row gap">
+          <button id="btn-guardar-gh" class="secondary">Guardar GH</button>
+          <button id="btn-subir-gh" class="primary">Subir a GitHub</button>
+          <button id="btn-bajar-gh" class="secondary">Bajar de GitHub</button>
         </div>
         <div id="gh-msg" class="msg"></div>
       </div>
 
-      <div class="card">
-        <h2>🛠 Mantenimiento</h2>
-        <p class="muted small">
-          Recalcula la categoría de todos los atletas a partir de su fecha de nacimiento
-          usando las reglas FVV (SEMILLAS / MINI / INFANTIL / PRE-JUVENIL / JUVENIL / MAYOR).
-          Útil para corregir categorías viejas tipo CADETE, PRE-INFANTIL, ALEVÍN o BENJAMÍN.
-        </p>
-        <button id="btn-recalcular-categorias" class="warn btn-block mt12">🔁 Recalcular categorías desde Fecha de Nacimiento</button>
+      <div class="card mt-2">
+        <h3>Herramientas</h3>
+        <button id="btn-recalcular-categorias" class="secondary">Recalcular Categorías por Edad</button>
         <div id="recalc-msg" class="msg"></div>
+
+        <div class="mt-2 row gap">
+          <button id="btn-respaldar" class="secondary">Respaldar BD (.sqlite)</button>
+          <button id="btn-restaurar" class="secondary">Restaurar BD</button>
+          <input type="file" id="file-restaurar" class="hidden" accept=".sqlite">
+        </div>
+        <div id="backup-msg" class="msg"></div>
       </div>
     </div>
   </div>
 
-</div>
+  <!-- Cargar la librería de SQLite como módulo -->
+  <script type="module" src="https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/sql-wasm.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/sql-wasm.js"></script>
-<script src="app.js"></script>
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(registration => console.log('SW registrado con éxito:', registration.scope))
-        .catch(err => console.log('Error al registrar SW:', err));
-    });
-  }
-</script>
+  <!-- Script de la aplicación -->
+  <script type="module" src="./app.js"></script>
 </body>
 </html>
