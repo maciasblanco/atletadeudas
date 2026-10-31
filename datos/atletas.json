@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-10-31T20:36:45.036Z",
+  "actualizado": "2026-10-31T20:36:48.946Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -80,7 +80,7 @@
       "apellido": "Gutiérrez",
       "fn": "",
       "deuda": 0,
-      "activo": 1,
+      "activo": 0,
       "categoria": "JUVENIL",
       "escuela": "Club Aves Voladoras",
       "representante": {
