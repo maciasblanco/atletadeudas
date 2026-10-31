@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-10-31T20:34:34.787Z",
+  "actualizado": "2026-10-31T20:34:44.137Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -152,7 +152,7 @@
       "apellido": "Mendoza",
       "fn": "",
       "deuda": 0,
-      "activo": 1,
+      "activo": 0,
       "categoria": "CADETE",
       "escuela": "Club Aves Voladoras",
       "representante": {
