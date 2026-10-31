@@ -7,6 +7,17 @@ import { hoyISO, fmt, normalizarCedula, showMsg, hideMsg, avisar, confirmar, res
 import { calcularMoraAtleta, calcularDeudaAtleta } from './quincenas.js';
 import { calcularCategoriaPorEdad } from './categorias.js';
 
+export function eliminarAtleta(id){
+  if(confirmar('¿Eliminar este atleta? Se borrarán sus datos y su historial de pagos. Esta acción no se puede deshacer.')){
+    state.db.run('DELETE FROM pagos WHERE atleta_id=?', [id]);
+    state.db.run('DELETE FROM atletas WHERE id=?', [id]);
+    guardarBDEnIDB();
+    renderAtletas();
+    if(typeof window.refrescarAdmin === 'function') window.refrescarAdmin();
+    if(typeof window.subirAGitHub === 'function') window.subirAGitHub();
+  }
+}
+
 export function renderAtletas(){
   const tb = document.getElementById('atletas-tbody'); 
   if(!tb) return;
@@ -62,6 +73,7 @@ export function renderAtletas(){
       <td>${badge}</td>
       <td class="acciones">
         <button data-id="${a.id}" data-acc="edit">✏️</button>
+        <button class="err" data-id="${a.id}" data-acc="delete">🗑️</button>
       </td>
     </tr>`;
   }).join('') || `<tr><td colspan="7" class="muted center">Sin atletas.</td></tr>`;
@@ -197,3 +209,14 @@ export function guardarAtleta(){
     showMsg(msg,'err','Error al guardar: '+e.message);
   }
 }
+
+// --- PARCHE: Evento para botón eliminar atleta ---
+const _origRenderAtletas = renderAtletas;
+renderAtletas = function(){
+  _origRenderAtletas();
+  const tb = document.getElementById('atletas-tbody');
+  if(!tb) return;
+  tb.querySelectorAll('button[data-acc="delete"]').forEach(b=>{
+    b.onclick = ()=> eliminarAtleta(Number(b.dataset.id));
+  });
+};

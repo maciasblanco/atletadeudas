@@ -142,6 +142,17 @@ export function limpiarFormPago(){
 /* ============================================================
    RENDER DE PAGOS
    ============================================================ */
+export function eliminarPago(id){
+  if(confirmar('¿Eliminar este pago permanentemente? Esta acción no se puede deshacer.')){
+    state.db.run('DELETE FROM pagos WHERE id=?', [id]);
+    guardarBDEnIDB();
+    renderPagos();
+    if (typeof window.renderAtletas === 'function') window.renderAtletas();
+    if(typeof window.refrescarAdmin === 'function') window.refrescarAdmin();
+    if(typeof window.subirAGitHub === 'function') window.subirAGitHub();
+  }
+}
+
 export function renderPagos(){
   const tb = document.getElementById('pagos-tbody'); if(!tb) return;
   const rows = all(`
@@ -364,7 +375,14 @@ export function registrarPago(){
       showMsg(msg,'ok',`Pago registrado (Pendiente de verificación).`);
     }
     
-    if (typeof window.subirAGitHub === 'function') window.subirAGitHub().catch(err=>console.warn('Sync post-pago-admin:', err));
+    if (typeof window.subirAGitHub === 'function') {
+      window.subirAGitHub()
+        .then(res => {
+          if(res.ok) showMsg(msg, 'ok', '✅ Pago registrado y sincronizado en la nube.');
+          else showMsg(msg, 'err', '⚠️ Guardado local, pero falló la subida a GitHub: ' + res.error);
+        })
+        .catch(err => console.warn('Sync post-pago-admin:', err));
+    }
 
   }catch(e){
     showMsg(msg,'err','Error al registrar: '+e.message);
@@ -456,3 +474,14 @@ export function actualizarCoberturaPago(){
     cobertura.textContent += ` 💡 El monto (${fmt(monto)} USD) equivale a ${monto/mq} quincenas, pero esta app registra 1 quincena por pago. Si querés cubrir varias, registrá un pago por cada una.`;
   }
 }
+
+// --- PARCHE: Evento para botón eliminar pago ---
+const _origRenderPagos = renderPagos;
+renderPagos = function(){
+  _origRenderPagos();
+  const tb = document.getElementById('pagos-tbody');
+  if(!tb) return;
+  tb.querySelectorAll('button[data-acc="del-pago"]').forEach(b=>{
+    b.onclick = ()=> eliminarPago(Number(b.dataset.id));
+  });
+};
