@@ -7,24 +7,6 @@ import { hoyISO, fmt, normalizarCedula, showMsg, hideMsg, avisar, confirmar, res
 import { calcularMoraAtleta, calcularDeudaAtleta } from './quincenas.js';
 import { calcularCategoriaPorEdad } from './categorias.js';
 
-export async function eliminarAtleta(id){
-  if(!confirmar('¿Desactivar este atleta? Dejará de aparecer en la lista, pero sus pagos se conservarán.')) return;
-  state.db.run('UPDATE atletas SET activo=0 WHERE id=?', [id]);
-  await guardarBDEnIDB();
-  renderAtletas();
-  if(typeof window.refrescarAdmin === 'function') window.refrescarAdmin();
-
-  const msg = document.getElementById('atleta-form-msg');
-  if(typeof window.subirAGitHub === 'function') {
-    if(msg) window.showMsg(msg, 'info', 'Sincronizando cambio con GitHub...');
-    const res = await window.subirAGitHub();
-    if(msg){
-      if(res.ok) window.showMsg(msg, 'ok', '✅ Atleta desactivado y actualizado en GitHub.');
-      else window.showMsg(msg, 'err', '⚠️ Desactivado localmente, pero falló GitHub.');
-    }
-  }
-}
-
 export function renderAtletas(){
   const tb = document.getElementById('atletas-tbody'); 
   if(!tb) return;
@@ -36,6 +18,7 @@ export function renderAtletas(){
            r.nombre AS rep_nombre, r.apellido AS rep_apellido, r.telefono AS rep_tel
       FROM atletas a
       LEFT JOIN representantes r ON r.id = a.representante_id
+     WHERE a.activo = 1
      ORDER BY a.p_apellido, a.p_nombre`);
      
   if(filtro){
@@ -87,6 +70,28 @@ export function renderAtletas(){
 
   tb.querySelectorAll('button[data-acc="edit"]').forEach(b=>{
     b.onclick = ()=>editarAtleta(Number(b.dataset.id));
+  });
+
+  tb.querySelectorAll('button[data-acc="delete"]').forEach(b=>{
+    b.onclick = async ()=> {
+      const id = Number(b.dataset.id);
+      if(confirmar('¿Desactivar este atleta? Dejará de aparecer en la lista.')){
+        state.db.run('UPDATE atletas SET activo=0 WHERE id=?', [id]);
+        await guardarBDEnIDB();
+        renderAtletas();
+        
+        const msg = document.getElementById('atleta-form-msg');
+        if(typeof window.subirAGitHub === 'function') {
+          if(msg) showMsg(msg, 'info', 'Sincronizando borrado con GitHub...');
+          const res = await window.subirAGitHub();
+          if(res.ok) {
+            if(msg) showMsg(msg, 'ok', '✅ Atleta eliminado y actualizado en GitHub.');
+          } else {
+            if(msg) showMsg(msg, 'err', '⚠️ Eliminado localmente, pero falló en GitHub.');
+          }
+        }
+      }
+    };
   });
 }
 
@@ -216,33 +221,3 @@ export function guardarAtleta(){
     showMsg(msg,'err','Error al guardar: '+e.message);
   }
 }
-
-// --- PARCHE: Evento para botón eliminar atleta ---
-const _origRenderAtletas = renderAtletas;
-renderAtletas = function(){
-  _origRenderAtletas();
-  const tb = document.getElementById('atletas-tbody');
-  if(!tb) return;
-  tb.querySelectorAll('button[data-acc="delete"]').forEach(b=>{
-    b.onclick = async ()=> {
-      const id = Number(b.dataset.id);
-      if(confirmar('¿Desactivar este atleta? Dejará de aparecer en la lista, pero sus pagos se conservarán.')){
-        state.db.run('UPDATE atletas SET activo=0 WHERE id=?', [id]);
-        await guardarBDEnIDB();
-        renderAtletas();
-        if(typeof window.refrescarAdmin === 'function') window.refrescarAdmin();
-        
-        const msg = document.getElementById('atleta-form-msg');
-        if(typeof window.subirAGitHub === 'function') {
-          if(msg) showMsg(msg, 'info', 'Sincronizando borrado con GitHub...');
-          const res = await window.subirAGitHub();
-          if(res.ok) {
-            if(msg) showMsg(msg, 'ok', '✅ Atleta eliminado y actualizado en GitHub.');
-          } else {
-            if(msg) showMsg(msg, 'err', '⚠️ Eliminado localmente, pero falló en GitHub. Revisa internet.');
-          }
-        }
-      }
-    };
-  });
-};

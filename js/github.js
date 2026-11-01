@@ -35,6 +35,11 @@ export async function subirAGitHub() {
       JOIN atletas a ON a.id=p.atleta_id
       LEFT JOIN metodos_pago m ON m.id=p.metodo_pago_id
      ORDER BY p.fecha ASC`);
+  const asistencias = all(`
+    SELECT asis.fecha, a.identificacion AS atleta_ci, asis.estado
+      FROM asistencias asis
+      JOIN atletas a ON a.id = asis.atleta_id
+     ORDER BY asis.fecha ASC`);
 
   const payload = {
     version: 2,
@@ -60,6 +65,11 @@ export async function subirAGitHub() {
       metodo_pago: p.metodo_nombre || 'Otro',
       referencia: p.referencia || '', banco_origen: p.banco_origen || '',
       telefono_origen: p.telefono_origen || '', estado: p.estado || 'pagado'
+    })),
+    asistencias: asistencias.map(asis => ({
+      cedula: String(asis.atleta_ci || ''),
+      fecha: asis.fecha,
+      estado: asis.estado || 'presente'
     }))
   };
 
@@ -145,7 +155,6 @@ export async function sincronizarDesdeGitHub() {
          repId, Number(a.deuda) || 0, activoVal, existente.id]);
       actualizados++;
     } else {
-      // Clave por defecto
       const s = normalizarCedula(ced).replace(/-/g, '');
       const clave = s.slice(-4) || s;
       
@@ -185,6 +194,17 @@ export async function sincronizarDesdeGitHub() {
          Number(p.monto) || 0, p.moneda || 'USD', Number(p.monto_bs) || 0, Number(p.tasa) || 0,
          ref, p.banco_origen || '', p.telefono_origen || '', p.estado || 'pagado']);
       pagosNuevos++;
+    }
+  }
+
+  if (Array.isArray(json.asistencias)) {
+    for (const asis of json.asistencias) {
+      if (!asis || asis.cedula == null || !asis.fecha) continue;
+      const at = one('SELECT id FROM atletas WHERE identificacion=?', [normalizarCedula(asis.cedula)]);
+      if (!at) continue;
+      
+      state.db.run(`INSERT OR REPLACE INTO asistencias(atleta_id, fecha, estado) VALUES(?, ?, ?)`, 
+        [at.id, asis.fecha, asis.estado || 'presente']);
     }
   }
 
