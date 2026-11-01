@@ -130,23 +130,10 @@
 
     <!-- TAB: ATLETAS -->
     <div id="tab-atletas" class="tab-content">
+      
+      <!-- FORMULARIO PRIMERO -->
       <div class="card mt-2">
-        <h3>Atletas</h3>
-        <input id="buscar-atleta" type="text" placeholder="Buscar por cédula, nombre o representante…">
-        <div class="tabla-scroll mt-2">
-          <table>
-            <thead>
-              <tr>
-                <th>Cédula</th><th>Nombre</th><th>Representante</th><th>Categoría</th><th>Deuda</th><th>Estado</th><th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="atletas-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card mt-2">
-        <h3>Formulario Atleta</h3>
+        <h3>Agregar / Editar Atleta</h3>
         <form id="form-atleta">
           <input type="hidden" id="atleta_id">
           <div class="grid-2">
@@ -250,6 +237,23 @@
           <div id="atleta-form-msg" class="msg"></div>
         </form>
       </div>
+
+      <!-- LISTA DEBAJO -->
+      <div class="card mt-2">
+        <h3>Listado de Atletas</h3>
+        <input id="buscar-atleta" type="text" placeholder="Buscar por cédula, nombre o representante…">
+        <div class="tabla-scroll mt-2">
+          <table>
+            <thead>
+              <tr>
+                <th>Cédula</th><th>Nombre</th><th>Representante</th><th>Categoría</th><th>Deuda</th><th>Estado</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="atletas-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 
     <!-- TAB: PAGOS -->

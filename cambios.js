@@ -1,454 +1,838 @@
 /* ============================================================
-   cambios.js — Sobrescribir archivos para corregir borrado y JSON
+   cambios.js — Sobrescribir CSS y HTML (Menú y Formulario)
    ============================================================ */
 
 module.exports = {
-  descripcion: 'Sobrescribir github.js y ui-admin-atletas.js para asegurar la correccion',
+  descripcion: 'Corregir menu responsive y poner formulario antes de la lista usando sobrescribir',
   operaciones: [
+    // 1. Sobrescribir styles.css para arreglar las pestañas
     {
       tipo: 'sobrescribir',
-      archivo: 'js/github.js',
+      archivo: 'styles.css',
       contenido: `/* ============================================================
-   github.js — Sincronización con GitHub
+   styles.css — AtletaDeudas (Optimizado)
    ============================================================ */
-import { state } from './state.js';
-import { all, one, getConfig, setConfig, guardarBDEnIDB } from './db.js';
-import { normalizarCedula } from './utils.js';
 
-export function construirRawURL() {
-  const u = getConfig('github_usuario') || 'maciasblanco';
-  const r = getConfig('github_repo') || 'atletadeudas';
-  const rama = getConfig('github_rama') || 'main';
-  const ruta = getConfig('github_ruta') || 'datos/atletas.json';
-  
-  state.GH_RAW = \`https://raw.githubusercontent.com/\${u}/\${r}/\${rama}/\${ruta}\`;
-  return state.GH_RAW;
+:root {
+  --bg: #0b1020;
+  --bg-card: #111a2e;
+  --border: #1e2a45;
+  --text: #e6edf7;
+  --muted: #9aa7c7;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --secondary: #1e2a45;
+  --secondary-hover: #2a3a5c;
+  --ok: #10b981;
+  --warn: #f59e0b;
+  --err: #ef4444;
 }
 
-export async function subirAGitHub() {
-  const usuario = getConfig('github_usuario', '');
-  const repo = getConfig('github_repo', '');
-  const ruta = getConfig('github_ruta', 'datos/atletas.json');
-  const rama = getConfig('github_rama', 'main');
-  const token = getConfig('github_token', '');
-  
-  if (!usuario || !repo || !token) return { ok: false, error: 'Falta configurar usuario, repo o token.' };
-
-  const atletas = all(\`
-    SELECT a.*, r.identificacion AS rep_id, r.nombre AS rep_nombre, r.apellido AS rep_apellido,
-           r.telefono AS rep_tel, r.email AS rep_email, r.parentesco AS rep_parentesco
-      FROM atletas a
-      LEFT JOIN representantes r ON r.id = a.representante_id\`);
-  const pagos = all(\`
-    SELECT p.*, a.identificacion AS atleta_ci, m.nombre AS metodo_nombre
-      FROM pagos p
-      JOIN atletas a ON a.id=p.atleta_id
-      LEFT JOIN metodos_pago m ON m.id=p.metodo_pago_id
-     ORDER BY p.fecha ASC\`);
-  const asistencias = all(\`
-    SELECT asis.fecha, a.identificacion AS atleta_ci, asis.estado
-      FROM asistencias asis
-      JOIN atletas a ON a.id = asis.atleta_id
-     ORDER BY asis.fecha ASC\`);
-
-  const payload = {
-    version: 2,
-    actualizado: new Date().toISOString(),
-    atletas: atletas.map(a => ({
-      cedula: String(a.identificacion || ''),
-      nombre: a.p_nombre || '', apellido: a.p_apellido || '',
-      fn: a.fn || '',
-      deuda: Number(a.deuda) || 0,
-      activo: (a.activo == null ? 1 : (Number(a.activo) || 0)),
-      categoria: a.categoria || '', escuela: a.escuela || '',
-      representante: {
-        cedula: a.rep_id || '', nombre: a.rep_nombre || '', apellido: a.rep_apellido || '',
-        telefono: a.rep_tel || '', email: a.rep_email || '', parentesco: a.rep_parentesco || ''
-      }
-    })),
-    pagos: pagos.map(p => ({
-      cedula: String(p.atleta_ci || ''),
-      fecha: p.fecha, fecha_quincena: p.fecha_quincena,
-      numero_quincena: p.numero_quincena,
-      monto: Number(p.monto) || 0, moneda: p.moneda || 'USD',
-      monto_bs: Number(p.monto_bs_original) || 0, tasa: Number(p.tasa) || 0,
-      metodo_pago: p.metodo_nombre || 'Otro',
-      referencia: p.referencia || '', banco_origen: p.banco_origen || '',
-      telefono_origen: p.telefono_origen || '', estado: p.estado || 'pagado'
-    })),
-    asistencias: asistencias.map(asis => ({
-      cedula: String(asis.atleta_ci || ''),
-      fecha: asis.fecha,
-      estado: asis.estado || 'presente'
-    }))
-  };
-
-  const contentB64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
-  const apiBase = \`https://api.github.com/repos/\${usuario}/\${repo}/contents/\${ruta}\`;
-  const headers = {
-    'Authorization': \`Bearer \${token}\`,
-    'Accept': 'application/vnd.github+json',
-    'X-GitHub-Api-Version': '2022-11-28'
-  };
-
-  let sha = null;
-  try {
-    const r = await fetch(\`\${apiBase}?ref=\${encodeURIComponent(rama)}&t=\${Date.now()}\`, { headers, cache: 'no-store' });
-    if (r.status === 200) { sha = (await r.json()).sha; }
-    else if (r.status !== 404) { return { ok: false, error: \`GET \${r.status}: \${(await r.text()).slice(0, 180)}\` }; }
-  } catch (e) { return { ok: false, error: 'Error red SHA: ' + e.message }; }
-
-  const body = { message: \`Actualizar atletas.json (\${new Date().toISOString()})\`, content: contentB64, branch: rama };
-  if (sha) body.sha = sha;
-
-  try {
-    const r = await fetch(apiBase, {
-      method: 'PUT',
-      headers: { ...headers, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    if (!r.ok) return { ok: false, error: \`PUT \${r.status}: \${(await r.text()).slice(0, 240)}\` };
-    const j = await r.json();
-
-    const ids = pagos.map(p => p.id).filter(Boolean);
-    if (ids.length) {
-      state.db.run(\`UPDATE pagos SET pendiente_subir=0 WHERE id IN (\${ids.join(',')})\`);
-    }
-    guardarBDEnIDB();
-    return { ok: true, sha: j.content?.sha, nAtletas: payload.atletas.length, nPagos: payload.pagos.length };
-  } catch (e) {
-    return { ok: false, error: 'Error red PUT: ' + e.message };
-  }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-export async function sincronizarDesdeGitHub() {
-  if (!getConfig('github_usuario')) setConfig('github_usuario', 'maciasblanco');
-  if (!getConfig('github_repo')) setConfig('github_repo', 'atletadeudas');
-  if (!getConfig('github_ruta')) setConfig('github_ruta', 'datos/atletas.json');
-  if (!getConfig('github_rama')) setConfig('github_rama', 'main');
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
 
-  construirRawURL();
-  if (!state.GH_RAW) return { ok: false, error: 'Falta configurar usuario/repo.' };
-  
-  let json;
-  try {
-    const r = await fetch(\`\${state.GH_RAW}?t=\${Date.now()}\`, { cache: 'no-store' });
-    if (!r.ok) return { ok: false, error: \`HTTP \${r.status} al leer JSON (\${state.GH_RAW})\` };
-    json = await r.json();
-  } catch (e) { return { ok: false, error: 'Error red al leer GitHub: ' + e.message }; }
-  if (!json || !Array.isArray(json.atletas)) return { ok: false, error: 'JSON inválido.' };
+/* --- Contenedores y Tarjetas --- */
+.view {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
 
-  let nuevos = 0, actualizados = 0, pagosNuevos = 0;
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
 
-  for (const a of json.atletas) {
-    if (!a || a.cedula == null) continue;
-    const ced = normalizarCedula(a.cedula);
-    const rep = a.representante || {};
-    let repId = null;
-    if (rep.cedula) {
-      const repCed = normalizarCedula(rep.cedula);
-      state.db.run(\`INSERT INTO representantes(identificacion,nombre,apellido,telefono,email,parentesco)
-              VALUES(?,?,?,?,?,?)
-              ON CONFLICT(identificacion) DO UPDATE SET
-                nombre=excluded.nombre, apellido=excluded.apellido, telefono=excluded.telefono,
-                email=excluded.email, parentesco=excluded.parentesco\`,
-        [repCed, rep.nombre || '', rep.apellido || '', rep.telefono || '', rep.email || '', rep.parentesco || '']);
-      const r = one('SELECT id FROM representantes WHERE identificacion=?', [repCed]);
-      repId = r?.id || null;
-    }
-    const existente = one('SELECT id FROM atletas WHERE identificacion=?', [ced]);
-    const activoVal = (a.activo == null ? 1 : (Number(a.activo) || 0));
-    if (existente) {
-      state.db.run(\`UPDATE atletas SET p_nombre=?, p_apellido=?, categoria=?, escuela=?, fn=?,
-              representante_id=?, deuda=?, activo=? WHERE id=?\`,
-        [a.nombre || '', a.apellido || '', a.categoria || '', a.escuela || '', a.fn || null,
-         repId, Number(a.deuda) || 0, activoVal, existente.id]);
-      actualizados++;
-    } else {
-      const s = normalizarCedula(ced).replace(/-/g, '');
-      const clave = s.slice(-4) || s;
-      
-      state.db.run(\`INSERT INTO atletas(identificacion,p_nombre,p_apellido,categoria,escuela,fn,
-              representante_id,clave,deuda,activo) VALUES(?,?,?,?,?,?,?,?,?,?)\`,
-        [ced, a.nombre || '', a.apellido || '', a.categoria || '', a.escuela || '', a.fn || null,
-         repId, clave, Number(a.deuda) || 0, activoVal]);
-      nuevos++;
-    }
-  }
+#view-login .card {
+  max-width: 450px;
+  margin: 40px auto;
+}
 
-  if (Array.isArray(json.pagos)) {
-    for (const p of json.pagos) {
-      if (!p || p.cedula == null) continue;
-      const at = one('SELECT id FROM atletas WHERE identificacion=?', [normalizarCedula(p.cedula)]);
-      if (!at) continue;
-      const metodo = one('SELECT id FROM metodos_pago WHERE nombre=? OR codigo=?', [String(p.metodo_pago || ''), String(p.metodo_pago || '').toUpperCase()]);
+/* --- Tipografía --- */
+h1, h2, h3, h4 {
+  color: #fff;
+  margin-bottom: 10px;
+}
 
-      const fecha = p.fecha || p.fecha_quincena;
-      if (!fecha) continue;
+h1 { font-size: 24px; }
+h2 { font-size: 20px; }
+h3 { font-size: 18px; margin-top: 10px; }
+h4 { font-size: 14px; text-transform: uppercase; color: var(--muted); margin-top: 20px; margin-bottom: 10px; }
 
-      const ref = p.referencia != null ? String(p.referencia) : '';
-      const existeLocal = one(\`SELECT id, estado FROM pagos WHERE atleta_id=? AND metodo_pago_id=? AND IFNULL(referencia,'')=? AND fecha=?\`, [at.id, metodo?.id || null, ref, fecha]);
+p { margin-bottom: 10px; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.center { text-align: center; }
 
-      if (existeLocal) {
-        const estadoRemoto = p.estado || 'pagado';
-        if (existeLocal.estado === 'pendiente' && estadoRemoto === 'pagado') {
-          state.db.run(\`UPDATE pagos SET estado='pagado', pendiente_subir=0 WHERE id=?\`, [existeLocal.id]);
-        }
-        continue;
-      }
+/* --- Formularios --- */
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 6px;
+  margin-top: 16px;
+  text-transform: uppercase;
+}
 
-      state.db.run(\`INSERT INTO pagos(atleta_id,metodo_pago_id,fecha,fecha_quincena,numero_quincena,
-              monto,moneda,monto_bs_original,tasa,referencia,banco_origen,telefono_origen,estado,pendiente_subir)
-              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,0)\`,
-        [at.id, metodo?.id || null, fecha, p.fecha_quincena || null, p.numero_quincena || null,
-         Number(p.monto) || 0, p.moneda || 'USD', Number(p.monto_bs) || 0, Number(p.tasa) || 0,
-         ref, p.banco_origen || '', p.telefono_origen || '', p.estado || 'pagado']);
-      pagosNuevos++;
-    }
-  }
+input, select, textarea {
+  width: 100%;
+  padding: 12px;
+  background: #0a1220;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
 
-  if (Array.isArray(json.asistencias)) {
-    for (const asis of json.asistencias) {
-      if (!asis || asis.cedula == null || !asis.fecha) continue;
-      const at = one('SELECT id FROM atletas WHERE identificacion=?', [normalizarCedula(asis.cedula)]);
-      if (!at) continue;
-      
-      state.db.run(\`INSERT OR REPLACE INTO asistencias(atleta_id, fecha, estado) VALUES(?, ?, ?)\`, 
-        [at.id, asis.fecha, asis.estado || 'presente']);
-    }
-  }
+input:focus, select:focus {
+  border-color: var(--primary);
+}
 
-  guardarBDEnIDB();
-  return { ok: true, nuevos, actualizados, pagosNuevos, actualizado: json.actualizado || '' };
+input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --- Botones --- */
+button {
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+button.primary {
+  background: var(--primary);
+  color: #fff;
+}
+button.primary:hover { background: var(--primary-hover); }
+
+button.secondary {
+  background: var(--secondary);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+button.secondary:hover { background: var(--secondary-hover); }
+
+button.small { padding: 8px 12px; font-size: 12px; }
+
+button.ok { background: var(--ok); color: #fff; }
+button.err { background: var(--err); color: #fff; }
+
+/* --- Botones de ancho completo --- */
+#login-atleta-form .primary, 
+#login-admin-form .primary,
+#btn-sync-login,
+#btn-reportar-aporte,
+#btn-guardar-config {
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* --- Ojos de contraseña (pass-wrap) --- */
+.pass-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.pass-wrap input {
+  padding-right: 45px;
+}
+
+.pass-wrap .btn-eye {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 20px;
+  padding: 5px;
+  width: auto;
+  margin: 0;
+  box-shadow: none;
+}
+
+.pass-wrap .btn-eye:hover {
+  color: #fff;
+  background: transparent;
+}
+
+/* --- Pestañas (Tabs) --- */
+.tabs {
+  display: flex;
+  flex-wrap: wrap; /* Permite que los botones bajen de línea en el celular */
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.tabs button {
+  flex: 1 1 auto;
+  min-width: 100px;
+  background: #0a1220;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 10px 14px;
+}
+
+.tabs button.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+/* --- Tablas --- */
+.tabla-scroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* --- Badges (Etiquetas de estado) --- */
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.badge.ok { background: rgba(16, 185, 129, 0.2); color: var(--ok); }
+.badge.warn { background: rgba(245, 158, 11, 0.2); color: var(--warn); }
+.badge.err { background: rgba(239, 68, 68, 0.2); color: var(--err); }
+
+/* --- Filas especiales --- */
+.fila-no-practica {
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+/* --- Utilidades --- */
+.hidden { display: none !important; }
+.mt-1 { margin-top: 10px; }
+.mt-2 { margin-top: 20px; }
+.row { display: flex; align-items: center; }
+.gap { gap: 10px; }
+.space-between { justify-content: space-between; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+@media (max-width: 600px) {
+  .grid-2 { grid-template-columns: 1fr; }
+  .card { padding: 16px; }
+}
+
+/* --- Mensajes de alerta --- */
+.msg {
+  display: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-top: 15px;
+}
+
+.msg.show { display: block; }
+.msg.ok { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid var(--ok); }
+.msg.err { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid var(--err); }
+.msg.info { background: rgba(37, 99, 235, 0.15); color: #93c5fd; border: 1px solid var(--primary); }
+
+/* --- Aviso de pendientes --- */
+.aviso-pendiente {
+  margin-top: 15px;
+  padding: 12px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid var(--warn);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #fcd34d;
+}
+
+/* ============================================================
+   Botón circular "Actualizar sistema" (⟳)
+   ============================================================ */
+.btn-sync-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0 auto;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+.btn-sync-circle:hover {
+  background: var(--secondary-hover);
+}
+
+.btn-sync-circle:active {
+  transform: scale(0.94);
+}
+
+.btn-sync-circle .sync-icon {
+  font-size: 26px;
+  line-height: 1;
+  display: inline-block;
+  transition: transform 0.3s;
+}
+
+/* Animación de giro mientras sincroniza */
+.btn-sync-circle.syncing .sync-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+
+/* ============================================================
+   Ajuste visual del botón circular "Actualizar sistema"
+   - Fondo verde claro
+   - Ícono (flecha) azul oscuro
+   ============================================================ */
+.btn-sync-circle {
+  background: #86efac !important;      /* verde claro */
+  color: #0b1e4a !important;           /* azul oscuro */
+  border: 1px solid #4ade80 !important;
+}
+
+.btn-sync-circle:hover {
+  background: #4ade80 !important;      /* verde un poco más intenso al pasar el mouse */
+}
+
+.btn-sync-circle .sync-icon {
+  color: #0b1e4a !important;           /* flecha azul oscuro */
 }
 `
     },
+    // 2. Sobrescribir index.html para mantener el formulario arriba y la lista abajo
     {
       tipo: 'sobrescribir',
-      archivo: 'js/ui-admin-atletas.js',
-      contenido: `/* ============================================================
-   ui-admin-atletas.js — Tabla y Formulario de Atletas
-   ============================================================ */
-import { state } from './state.js';
-import { one, all, getConfig, setConfig, guardarBDEnIDB } from './db.js';
-import { hoyISO, fmt, normalizarCedula, showMsg, hideMsg, avisar, confirmar, resetPassToggle } from './utils.js';
-import { calcularMoraAtleta, calcularDeudaAtleta } from './quincenas.js';
-import { calcularCategoriaPorEdad } from './categorias.js';
+      archivo: 'index.html',
+      contenido: `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AtletaDeudas — Club Aves Voladoras</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <meta name="theme-color" content="#0b1020">
+</head>
+<body>
 
-export function renderAtletas(){
-  const tb = document.getElementById('atletas-tbody'); 
-  if(!tb) return;
-  const filtro = (document.getElementById('buscar-atleta')?.value||'').trim().toLowerCase();
-  
-  let rows = all(\`
-    SELECT a.id, a.identificacion, a.p_nombre, a.s_nombre, a.p_apellido, a.s_apellido,
-           a.categoria, a.deuda, a.fn,
-           r.nombre AS rep_nombre, r.apellido AS rep_apellido, r.telefono AS rep_tel
-      FROM atletas a
-      LEFT JOIN representantes r ON r.id = a.representante_id
-     WHERE a.activo = 1
-     ORDER BY a.p_apellido, a.p_nombre\`);
-     
-  if(filtro){
-    rows = rows.filter(a=>{
-      const nom = \`\${a.p_nombre||''} \${a.s_nombre||''} \${a.p_apellido||''} \${a.s_apellido||''}\`.toLowerCase();
-      const rep = \`\${a.rep_nombre||''} \${a.rep_apellido||''}\`.toLowerCase();
-      return (a.identificacion||'').toLowerCase().includes(filtro)
-          || nom.includes(filtro)
-          || rep.includes(filtro);
-    });
-  }
-  
-  tb.innerHTML = rows.map(a=>{
-    const nombre = [a.p_nombre,a.s_nombre,a.p_apellido,a.s_apellido].filter(Boolean).join(' ');
-    const rep = [a.rep_nombre,a.rep_apellido].filter(Boolean).join(' ') +
-                (a.rep_tel ? \` · \${a.rep_tel}\` : '');
-    const m = calcularMoraAtleta(a.id);
-    const d = calcularDeudaAtleta(a.id);
-    const deudaMostrar = d.total_bs;
-    const filaClase = (m.estado === 'no_practica') ? 'fila-no-practica' : '';
-    
-    let badge = '';
-    if(m.estado === 'sin_inicio'){
-      badge = \`<span class="badge" style="background:#1e2a45;color:#9aa7c7">Sin iniciar</span>\`;
-    } else if(m.estado === 'ok'){
-      badge = \`<span class="badge ok">✅ Al día</span>\`;
-    } else {
-      const extra = (deudaMostrar > 0) ? \` · \${fmt(deudaMostrar)} Bs\` : '';
-      if(m.estado === 'mora'){
-        badge = \`<span class="badge warn">⚠️ Mora: \${m.debidas}\${extra}</span>\`;
-      } else {
-        badge = \`<span class="badge err">🚫 NO PRACTICA (\${m.debidas})\${extra}</span>\`;
-      }
-    }
+  <!-- ================= VISTA: CARGANDO ================= -->
+  <div id="view-loading" class="view">
+    <div class="card center">
+      <h1>AtletaDeudas</h1>
+      <p class="muted">Cargando base de datos…</p>
+    </div>
+  </div>
 
-    return \`<tr class="\${filaClase}">
-      <td>\${a.identificacion||''}</td>
-      <td>\${nombre}</td>
-      <td>\${rep||'—'}</td>
-      <td>\${a.categoria||'—'}</td>
-      <td style="color:#fbbf24">\${fmt(deudaMostrar)} Bs</td>
-      <td>\${badge}</td>
-      <td class="acciones">
-        <button data-id="\${a.id}" data-acc="edit">✏️</button>
-        <button class="err" data-id="\${a.id}" data-acc="delete">🗑️</button>
-      </td>
-    </tr>\`;
-  }).join('') || \`<tr><td colspan="7" class="muted center">Sin atletas.</td></tr>\`;
+  <!-- ================= VISTA: LOGIN ================= -->
+  <div id="view-login" class="view hidden">
+    <div class="card">
+      <h1>AtletaDeudas</h1>
+      <p class="muted">Club Aves Voladoras</p>
 
-  tb.querySelectorAll('button[data-acc="edit"]').forEach(b=>{
-    b.onclick = ()=>editarAtleta(Number(b.dataset.id));
-  });
+      <label>Cédula</label>
+      <input id="login-cedula" type="text" placeholder="V-12345678" autocomplete="username">
 
-  tb.querySelectorAll('button[data-acc="delete"]').forEach(b=>{
-    b.onclick = async ()=> {
-      const id = Number(b.dataset.id);
-      if(confirmar('¿Desactivar este atleta? Dejará de aparecer en la lista.')){
-        state.db.run('UPDATE atletas SET activo=0 WHERE id=?', [id]);
-        await guardarBDEnIDB();
-        renderAtletas();
+      <label>Clave</label>
+      <div class="pass-wrap">
+        <input id="login-clave" type="password" placeholder="••••••" autocomplete="current-password">
+        <button type="button" data-toggle-pass="login-clave" class="btn-eye" aria-label="Mostrar clave">👁</button>
+      </div>
+
+      <div class="row gap mt-2">
+        <button id="btn-login-atleta" class="primary">Entrar como Atleta</button>
+        <button id="btn-login-admin" class="secondary">Entrar como Admin</button>
+      </div>
+
+      <div id="login-msg" class="msg"></div>
+
+      <div class="mt-2 center">
+        <button id="btn-sync-login" class="btn-sync-circle" title="Actualizar sistema" aria-label="Actualizar sistema">
+          <span class="sync-icon">⟳</span>
+        </button>
+        <div class="muted small mt-1">Actualizar sistema</div>
+        <div id="sync-login-msg" class="msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= VISTA: ATLETA ================= -->
+  <div id="view-atleta" class="view hidden">
+    <div class="card">
+      <div class="row space-between">
+        <h2 id="atleta-nombre">—</h2>
+        <button id="btn-logout-atleta" class="secondary small">Salir</button>
+      </div>
+      <p class="muted">Cédula: <span id="atleta-cedula">—</span></p>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">Estado</div>
+          <div id="atleta-estado" class="stat-val">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Deuda</div>
+          <div id="atleta-deuda-bs" class="stat-val">—</div>
+          <div id="atleta-deuda-usd" class="muted small">—</div>
+        </div>
+      </div>
+      <div id="atleta-deuda-detalle" class="muted small"></div>
+
+      <div id="ra-resumen" class="mt-2"></div>
+
+      <div class="mt-2">
+        <button id="btn-ver-pagos" class="secondary">Ver historial de pagos</button>
+      </div>
+
+      <div id="atleta-pagos-card" class="mt-2 hidden">
+        <table>
+          <thead>
+            <tr><th>Fecha</th><th>Monto</th><th>Ref.</th><th>Quincena</th><th>Estado</th></tr>
+          </thead>
+          <tbody id="atleta-pagos-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card mt-2">
+      <h3>Reportar aporte</h3>
+      <label>Monto (USD)</label>
+      <input id="ra-monto" type="number" step="0.01" placeholder="5.00">
+      <label>Método de pago</label>
+      <select id="ra-metodo"></select>
+      <label>Referencia</label>
+      <input id="ra-referencia" type="text" placeholder="Nro. referencia">
+      <label>Nota (opcional)</label>
+      <input id="ra-nota" type="text" placeholder="Observación">
+      <button id="btn-reportar-aporte" class="primary">Enviar aporte</button>
+      <div id="ra-msg" class="msg"></div>
+    </div>
+
+    <div class="card mt-2 center">
+      <button id="btn-sync-atleta" class="btn-sync-circle" title="Actualizar sistema" aria-label="Actualizar sistema">
+        <span class="sync-icon">⟳</span>
+      </button>
+      <div class="muted small mt-1">Actualizar sistema</div>
+      <div id="sync-atleta-msg" class="msg"></div>
+    </div>
+  </div>
+
+  <!-- ================= VISTA: ADMIN ================= -->
+  <div id="view-admin" class="view hidden">
+    <div class="card">
+      <div class="row space-between">
+        <h2>Panel Administrador</h2>
+        <button id="btn-logout-admin" class="secondary small">Salir</button>
+      </div>
+      <div id="diag" class="muted small"></div>
+    </div>
+
+    <div id="admin-tabs" class="tabs mt-2">
+      <button class="active" data-tab="atletas">Atletas</button>
+      <button data-tab="pagos">Pagos</button>
+      <button data-tab="asistencia">Asistencia</button>
+      <button data-tab="config">Configuración</button>
+    </div>
+
+    <!-- TAB: ATLETAS -->
+    <div id="tab-atletas" class="tab-content">
+      
+      <!-- FORMULARIO PRIMERO -->
+      <div class="card mt-2">
+        <h3>Agregar / Editar Atleta</h3>
+        <form id="form-atleta">
+          <input type="hidden" id="atleta_id">
+          <div class="grid-2">
+            <div>
+              <label>Cédula *</label>
+              <input id="identificacion" type="text" required>
+            </div>
+            <div>
+              <label>Fecha de Nacimiento</label>
+              <input id="fn" type="date">
+            </div>
+            <div>
+              <label>Primer Nombre *</label>
+              <input id="p_nombre" type="text" required>
+            </div>
+            <div>
+              <label>Segundo Nombre</label>
+              <input id="s_nombre" type="text">
+            </div>
+            <div>
+              <label>Primer Apellido *</label>
+              <input id="p_apellido" type="text" required>
+            </div>
+            <div>
+              <label>Segundo Apellido</label>
+              <input id="s_apellido" type="text">
+            </div>
+            <div>
+              <label>Categoría</label>
+              <select id="categoria">
+                <option value="">— Seleccione —</option>
+                <option value="SEMILLAS">SEMILLAS</option>
+                <option value="MINI">MINI</option>
+                <option value="INFANTIL">INFANTIL</option>
+                <option value="PRE-JUVENIL">PRE-JUVENIL</option>
+                <option value="JUVENIL">JUVENIL</option>
+                <option value="MAYOR">MAYOR</option>
+              </select>
+            </div>
+            <div>
+              <label>Escuela</label>
+              <input id="escuela" type="text" value="Club Aves Voladoras">
+            </div>
+            <div>
+              <label>Celular</label>
+              <input id="cell" type="text">
+            </div>
+            <div>
+              <label>Teléfono Emergencia</label>
+              <input id="telf_emergencia1" type="text">
+            </div>
+            <div>
+              <label>Clave Atleta</label>
+              <div class="pass-wrap">
+                <input id="clave_atleta" type="password">
+                <button type="button" data-toggle-pass="clave_atleta" class="btn-eye" aria-label="Mostrar clave">👁</button>
+              </div>
+            </div>
+          </div>
+
+          <h4 class="mt-2">Representante</h4>
+          <div class="grid-2">
+            <div>
+              <label>Cédula Rep. *</label>
+              <input id="rep_identificacion" type="text" required>
+            </div>
+            <div>
+              <label>Nombre Rep. *</label>
+              <input id="rep_nombre" type="text" required>
+            </div>
+            <div>
+              <label>Apellido Rep. *</label>
+              <input id="rep_apellido" type="text" required>
+            </div>
+            <div>
+              <label>Teléfono Rep.</label>
+              <input id="rep_telefono" type="text">
+            </div>
+            <div>
+              <label>Email Rep.</label>
+              <input id="rep_email" type="email">
+            </div>
+            <div>
+              <label>Parentesco</label>
+              <select id="rep_parentesco">
+                <option value="">— Seleccione —</option>
+                <option value="Madre">Madre</option>
+                <option value="Padre">Padre</option>
+                <option value="Abuelo/a">Abuelo/a</option>
+                <option value="Tío/a">Tío/a</option>
+                <option value="Hermano/a">Hermano/a</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mt-2 row gap">
+            <button type="submit" class="primary">Guardar Atleta</button>
+            <button type="button" id="btn-limpiar-atleta" class="secondary">Limpiar</button>
+          </div>
+          <div id="atleta-form-msg" class="msg"></div>
+        </form>
+      </div>
+
+      <!-- LISTA DEBAJO -->
+      <div class="card mt-2">
+        <h3>Listado de Atletas</h3>
+        <input id="buscar-atleta" type="text" placeholder="Buscar por cédula, nombre o representante…">
+        <div class="tabla-scroll mt-2">
+          <table>
+            <thead>
+              <tr>
+                <th>Cédula</th><th>Nombre</th><th>Representante</th><th>Categoría</th><th>Deuda</th><th>Estado</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="atletas-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB: PAGOS -->
+    <div id="tab-pagos" class="tab-content hidden">
+      <div class="card mt-2">
+        <h3>Pagos Pendientes por Verificar</h3>
+        <div id="lista-pagos-pendientes"></div>
+      </div>
+
+      <div class="card mt-2">
+        <h3>Registrar Pago Manual</h3>
+        <form id="form-pago">
+          <label>Atleta</label>
+          <select id="pago_atleta"><option value="">— Seleccione —</option></select>
+          <div id="pago-resumen-atleta" class="card mt-1" style="display:none">
+            <div id="pago-resumen-texto"></div>
+          </div>
+
+          <div class="grid-2 mt-2">
+            <div>
+              <label>Fecha Pago</label>
+              <input id="fecha" type="date">
+            </div>
+            <div>
+              <label>Fecha Quincena</label>
+              <input id="fecha_quincena" type="date">
+            </div>
+            <div>
+              <label>Número Quincena</label>
+              <input id="numero_quincena" type="text" disabled>
+            </div>
+            <div>
+              <label>Monto (USD)</label>
+              <input id="monto" type="number" step="0.01">
+            </div>
+            <div>
+              <label>Monto (Bs)</label>
+              <input id="monto_bs" type="number" step="0.01">
+            </div>
+            <div>
+              <label>Tasa</label>
+              <input id="tasa" type="number" step="0.01">
+            </div>
+            <div>
+              <label>Método de pago</label>
+              <select id="metodo_pago_id"></select>
+            </div>
+            <div>
+              <label>Referencia</label>
+              <input id="referencia" type="text">
+            </div>
+            <div>
+              <label>Banco Origen</label>
+              <input id="banco_origen" type="text">
+            </div>
+            <div>
+              <label>Teléfono Origen</label>
+              <input id="telefono_origen" type="text">
+            </div>
+            <div>
+              <label>Estado</label>
+              <select id="estado">
+                <option value="pagado">Pagado</option>
+                <option value="pendiente">Pendiente</option>
+              </select>
+            </div>
+            <div>
+              <label>Observación</label>
+              <input id="observacion" type="text">
+            </div>
+          </div>
+          <div id="pago-cobertura" class="mt-2" style="display:none"></div>
+
+          <div class="mt-2 row gap">
+            <button type="submit" class="primary">Registrar Pago</button>
+            <button type="button" id="btn-limpiar-pago" class="secondary">Limpiar</button>
+          </div>
+          <div id="pago-msg" class="msg"></div>
+        </form>
+      </div>
+
+      <div class="card mt-2">
+        <h3>Últimos Pagos</h3>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Fecha</th><th>Atleta</th><th>Quincena</th><th>Método</th><th>Monto</th><th>Estado</th></tr>
+            </thead>
+            <tbody id="pagos-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: ASISTENCIA -->
+    <div id="tab-asistencia" class="tab-content hidden">
+      <div class="card mt-2">
+        <h3>Control de Asistencia</h3>
+        <p class="muted small">Selecciona la fecha y marca la asistencia de los atletas.</p>
         
-        const msg = document.getElementById('atleta-form-msg');
-        if(typeof window.subirAGitHub === 'function') {
-          if(msg) showMsg(msg, 'info', 'Sincronizando borrado con GitHub...');
-          const res = await window.subirAGitHub();
-          if(res.ok) {
-            if(msg) showMsg(msg, 'ok', '✅ Atleta eliminado y actualizado en GitHub.');
-          } else {
-            if(msg) showMsg(msg, 'err', '⚠️ Eliminado localmente, pero falló en GitHub.');
-          }
-        }
-      }
-    };
-  });
-}
+        <div class="grid-2 mt-2">
+          <div>
+            <label>Fecha de la práctica</label>
+            <input id="asistencia-fecha" type="date">
+          </div>
+          <div style="display:flex; align-items:flex-end;">
+            <button id="btn-cargar-asistencia" class="secondary" style="width:100%">Cargar / Actualizar</button>
+          </div>
+        </div>
 
-export function limpiarFormAtleta(){
-  ['atleta_id','identificacion','p_nombre','s_nombre','p_apellido','s_apellido',
-   'fn','cell','telf_emergencia1','clave_atleta','rep_identificacion','rep_nombre',
-   'rep_apellido','rep_telefono','rep_email'].forEach(id=>{
-     const el=document.getElementById(id); if(el) el.value='';
-   });
-  const cat=document.getElementById('categoria'); if(cat) cat.value='';
-  const esc=document.getElementById('escuela'); if(esc) esc.value='Club Aves Voladoras';
-  const par=document.getElementById('rep_parentesco'); if(par) par.value='';
+        <div class="mt-2">
+          <input id="buscar-asistencia" type="text" placeholder="Buscar atleta por nombre o cédula…">
+        </div>
 
-  const selectCat = document.getElementById('categoria');
-  if (selectCat) {
-    for (let i = 0; i < selectCat.options.length; i++) {
-      selectCat.options[i].text = selectCat.options[i].text.replace(/\\s*\\(\\d+\\s*años\\)/, '');
-    }
-  }
-  resetPassToggle('clave_atleta');
-}
+        <div class="tabla-scroll mt-2" style="max-height: 500px; overflow-y: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Cédula</th>
+                <th>Atleta</th>
+                <th>Categoría</th>
+                <th class="center">Asistencia</th>
+              </tr>
+            </thead>
+            <tbody id="asistencia-tbody"></tbody>
+          </table>
+        </div>
+        <div id="asistencia-msg" class="msg"></div>
+      </div>
+    </div>
 
-export function editarAtleta(id){
-  const a = one(\`
-    SELECT a.*, r.identificacion AS rep_id, r.nombre AS rep_nombre, r.apellido AS rep_apellido,
-           r.telefono AS rep_tel, r.email AS rep_email, r.parentesco AS rep_parentesco
-      FROM atletas a
-      LEFT JOIN representantes r ON r.id = a.representante_id
-     WHERE a.id=?\`, [id]);
-  if(!a) return;
-  
-  document.getElementById('atleta_id').value = a.id;
-  document.getElementById('identificacion').value = a.identificacion||'';
-  document.getElementById('p_nombre').value = a.p_nombre||'';
-  document.getElementById('s_nombre').value = a.s_nombre||'';
-  document.getElementById('p_apellido').value = a.p_apellido||'';
-  document.getElementById('s_apellido').value = a.s_apellido||'';
-  document.getElementById('fn').value = a.fn||'';
-  document.getElementById('categoria').value = a.categoria||'';
-  document.getElementById('escuela').value = a.escuela||'Club Aves Voladoras';
-  document.getElementById('cell').value = a.cell||'';
-  document.getElementById('telf_emergencia1').value = a.telf_emergencia1||'';
-  document.getElementById('clave_atleta').value = a.clave||'';
-  document.getElementById('rep_identificacion').value = a.rep_id||'';
-  document.getElementById('rep_nombre').value = a.rep_nombre||'';
-  document.getElementById('rep_apellido').value = a.rep_apellido||'';
-  document.getElementById('rep_telefono').value = a.rep_tel||'';
-  document.getElementById('rep_email').value = a.rep_email||'';
-  document.getElementById('rep_parentesco').value = a.rep_parentesco||'';
+    <!-- TAB: CONFIG -->
+    <div id="tab-config" class="tab-content hidden">
+      <div class="card mt-2">
+        <h3>Configuración General</h3>
+        <label>Monto por Quincena (USD)</label>
+        <input id="c-monto-quincena" type="number" step="0.01">
+        <label>Tasa Dólar</label>
+        <input id="c-tasa-dolar" type="number" step="0.01">
+        <button id="btn-tasa-bcv" class="secondary mt-2">Actualizar Tasa BCV</button>
+        <div id="tasa-bcv-info" class="muted small mt-1"></div>
 
-  resetPassToggle('clave_atleta');
-  window.scrollTo({top:0,behavior:'smooth'});
-}
+        <label class="mt-2">Clave Admin</label>
+        <div class="pass-wrap">
+          <input id="c-clave-admin" type="password">
+          <button type="button" data-toggle-pass="c-clave-admin" class="btn-eye">👁</button>
+        </div>
 
-export function guardarAtleta(){
-  const msg = document.getElementById('atleta-form-msg');
-  hideMsg(msg);
-  const ident = normalizarCedula(document.getElementById('identificacion').value);
-  const pNom = document.getElementById('p_nombre').value.trim();
-  const pApe = document.getElementById('p_apellido').value.trim();
-  const repId = normalizarCedula(document.getElementById('rep_identificacion').value);
-  const repNom = document.getElementById('rep_nombre').value.trim();
-  const repApe = document.getElementById('rep_apellido').value.trim();
-  if(!ident || !pNom || !pApe || !repId || !repNom || !repApe){
-    return showMsg(msg,'err','Complete los campos obligatorios (*).');
-  }
+        <label>Cédula Admin (opcional)</label>
+        <input id="c-cedula-admin" type="text" placeholder="Vacío = solo clave">
 
-  const idEdit = document.getElementById('atleta_id').value ? Number(document.getElementById('atleta_id').value) : null;
+        <label>Fecha de Corte Quincena</label>
+        <input id="c-fecha-corte" type="date">
 
-  if(!idEdit){
-    const existe = one('SELECT id FROM atletas WHERE identificacion=?', [ident]);
-    if(existe){
-      return showMsg(msg,'err','Ya existe un atleta con esa cédula.');
-    }
-  } else {
-    const otro = one('SELECT id FROM atletas WHERE identificacion=? AND id<>?', [ident, idEdit]);
-    if(otro){
-      return showMsg(msg,'err','Otra atleta ya usa esa cédula.');
-    }
-  }
+        <div class="mt-2">
+          <button id="btn-guardar-config" class="primary">Guardar Configuración</button>
+        </div>
+        <div id="config-msg" class="msg"></div>
+      </div>
 
-  try{
-    state.db.run(\`INSERT INTO representantes(identificacion,nombre,apellido,telefono,email,parentesco)
-            VALUES(?,?,?,?,?,?)
-            ON CONFLICT(identificacion) DO UPDATE SET
-              nombre=excluded.nombre, apellido=excluded.apellido,
-              telefono=excluded.telefono, email=excluded.email, parentesco=excluded.parentesco\`,
-      [repId, repNom, repApe,
-       document.getElementById('rep_telefono').value.trim(), document.getElementById('rep_email').value.trim(), document.getElementById('rep_parentesco').value]);
+      <div class="card mt-2">
+        <h3>Sincronización GitHub</h3>
+        <label>Usuario</label>
+        <input id="c-gh-user" type="text">
+        <label>Repositorio</label>
+        <input id="c-gh-repo" type="text">
+        <label>Ruta (archivo JSON)</label>
+        <input id="c-gh-ruta" type="text">
+        <label>Rama</label>
+        <input id="c-gh-rama" type="text">
+        <label>Token</label>
+        <div class="pass-wrap">
+          <input id="c-gh-token" type="password">
+          <button type="button" data-toggle-pass="c-gh-token" class="btn-eye">👁</button>
+        </div>
+        
+        <div class="mt-2 row gap">
+          <button id="btn-guardar-gh" class="secondary">Guardar GH</button>
+          <button id="btn-subir-gh" class="primary">Subir a GitHub</button>
+          <button id="btn-bajar-gh" class="secondary">Bajar de GitHub</button>
+        </div>
+        <div id="gh-msg" class="msg"></div>
+      </div>
 
-    const rep = one('SELECT id FROM representantes WHERE identificacion=?', [repId]);
-    if(!rep || !rep.id){
-      return showMsg(msg,'err','No se pudo guardar el representante.');
-    }
+      <div class="card mt-2">
+        <h3>Herramientas</h3>
+        <button id="btn-recalcular-categorias" class="secondary">Recalcular Categorías por Edad</button>
+        <div id="recalc-msg" class="msg"></div>
 
-    const claveInput = document.getElementById('clave_atleta').value.trim();
-    const s = normalizarCedula(ident).replace(/-/g,'');
-    const clave = claveInput || (s.slice(-4) || s);
+        <div class="mt-2 row gap">
+          <button id="btn-respaldar" class="secondary">Respaldar BD (.sqlite)</button>
+          <button id="btn-restaurar" class="secondary">Restaurar BD</button>
+          <input type="file" id="file-restaurar" class="hidden" accept=".sqlite">
+        </div>
+        <div id="backup-msg" class="msg"></div>
+      </div>
+    </div>
+  </div>
 
-    let catLimpia = document.getElementById('categoria').value;
-    catLimpia = catLimpia.replace(/\\s*\\(\\d+\\s*años\\)/, '');
+  <!-- Cargar la librería de SQLite como módulo -->
+  <script type="module" src="https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/sql-wasm.js"></script>
 
-    if(idEdit){
-      state.db.run(\`UPDATE atletas SET identificacion=?, p_nombre=?, s_nombre=?, p_apellido=?, s_apellido=?,
-              fn=?, categoria=?, escuela=?, cell=?, telf_emergencia1=?, representante_id=?, clave=?
-              WHERE id=?\`,
-        [ident, pNom, document.getElementById('s_nombre').value.trim(), pApe, document.getElementById('s_apellido').value.trim(),
-         document.getElementById('fn').value||null, catLimpia, document.getElementById('escuela').value.trim(),
-         document.getElementById('cell').value.trim(), document.getElementById('telf_emergencia1').value.trim(), rep.id, clave, idEdit]);
-    } else {
-      state.db.run(\`INSERT INTO atletas(identificacion,p_nombre,s_nombre,p_apellido,s_apellido,
-              fn,categoria,escuela,cell,telf_emergencia1,representante_id,clave,deuda,activo)
-              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,0,1)\`,
-        [ident, pNom, document.getElementById('s_nombre').value.trim(), pApe, document.getElementById('s_apellido').value.trim(),
-         document.getElementById('fn').value||null, catLimpia, document.getElementById('escuela').value.trim(),
-         document.getElementById('cell').value.trim(), document.getElementById('telf_emergencia1').value.trim(), rep.id, clave]);
-    }
-    guardarBDEnIDB();
-    renderAtletas();
-    if(typeof window.refrescarAdmin === 'function') window.refrescarAdmin();
-    limpiarFormAtleta();
-    showMsg(msg,'ok','Atleta guardado.');
-
-    if (typeof window.subirAGitHub === 'function') window.subirAGitHub().catch(err=>console.warn('Sync post-atleta:', err));
-
-  }catch(e){
-    showMsg(msg,'err','Error al guardar: '+e.message);
-  }
-}
+  <!-- Script de la aplicación -->
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
 `
     }
   ]

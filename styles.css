@@ -184,15 +184,18 @@ button.err { background: var(--err); color: #fff; }
 /* --- Pestañas (Tabs) --- */
 .tabs {
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap; /* Permite que los botones bajen de línea en el celular */
+  gap: 8px;
   margin-bottom: 20px;
 }
 
 .tabs button {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 100px;
   background: #0a1220;
   border: 1px solid var(--border);
   color: var(--muted);
+  padding: 10px 14px;
 }
 
 .tabs button.active {
