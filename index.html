@@ -124,6 +124,7 @@
     <div id="admin-tabs" class="tabs mt-2">
       <button class="active" data-tab="atletas">Atletas</button>
       <button data-tab="pagos">Pagos</button>
+      <button data-tab="asistencia">Asistencia</button>
       <button data-tab="config">Configuración</button>
     </div>
 
@@ -340,6 +341,43 @@
             <tbody id="pagos-tbody"></tbody>
           </table>
         </div>
+      </div>
+    </div>
+
+    <!-- TAB: ASISTENCIA -->
+    <div id="tab-asistencia" class="tab-content hidden">
+      <div class="card mt-2">
+        <h3>Control de Asistencia</h3>
+        <p class="muted small">Selecciona la fecha y marca la asistencia de los atletas.</p>
+        
+        <div class="grid-2 mt-2">
+          <div>
+            <label>Fecha de la práctica</label>
+            <input id="asistencia-fecha" type="date">
+          </div>
+          <div style="display:flex; align-items:flex-end;">
+            <button id="btn-cargar-asistencia" class="secondary" style="width:100%">Cargar / Actualizar</button>
+          </div>
+        </div>
+
+        <div class="mt-2">
+          <input id="buscar-asistencia" type="text" placeholder="Buscar atleta por nombre o cédula…">
+        </div>
+
+        <div class="tabla-scroll mt-2" style="max-height: 500px; overflow-y: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Cédula</th>
+                <th>Atleta</th>
+                <th>Categoría</th>
+                <th class="center">Asistencia</th>
+              </tr>
+            </thead>
+            <tbody id="asistencia-tbody"></tbody>
+          </table>
+        </div>
+        <div id="asistencia-msg" class="msg"></div>
       </div>
     </div>
 

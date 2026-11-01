@@ -60,6 +60,15 @@ export function crearSchema() {
 
   state.db.run(`CREATE TABLE IF NOT EXISTS config(clave TEXT PRIMARY KEY, valor TEXT);`);
 
+  state.db.run(`CREATE TABLE IF NOT EXISTS asistencias(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    atleta_id INTEGER NOT NULL,
+    fecha TEXT NOT NULL,
+    estado TEXT DEFAULT 'presente',
+    UNIQUE(atleta_id, fecha),
+    FOREIGN KEY(atleta_id) REFERENCES atletas(id)
+  );`);
+
   try {
     const cols = state.db.exec("PRAGMA table_info(atletas)");
     const nombres = cols.length ? cols[0].values.map(v => v[1]) : [];

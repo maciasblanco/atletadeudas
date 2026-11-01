@@ -31,11 +31,12 @@ export function wireEvents(){
     b.onclick = ()=>{
       document.querySelectorAll('#admin-tabs button').forEach(x=>x.classList.remove('active'));
       b.classList.add('active');
-      ['atletas','pagos','config'].forEach(t=>{
+      ['atletas','pagos','asistencia','config'].forEach(t=>{
         const tabEl = $('tab-'+t);
         if(tabEl) tabEl.classList.toggle('hidden', t!==b.dataset.tab);
       });
       if(b.dataset.tab === 'pagos') window.renderPagosPendientes();
+      if(b.dataset.tab === 'asistencia') window.renderAsistenciaTab();
     };
   });
 
@@ -146,6 +147,11 @@ export function wireEvents(){
         window.showMsg($('sync-atleta-msg'),'err', r.error);
     }
   });
+
+  // 13. Asistencia
+  on('btn-cargar-asistencia', () => window.renderAsistenciaTab());
+  onEvent('asistencia-fecha', 'change', () => window.renderAsistenciaTab());
+  onEvent('buscar-asistencia', 'input', () => window.renderAsistenciaTab());
 
   // Herramientas
   on('btn-recalcular-categorias', () => window.recalcularCategoriasDesdeFN());

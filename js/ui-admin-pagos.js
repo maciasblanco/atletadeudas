@@ -553,3 +553,85 @@ window.eliminarPago = async function(id){
     }
   }
 };
+
+
+
+/* ============================================================
+   MÓDULO DE ASISTENCIA (Admin)
+   ============================================================ */
+export function renderAsistenciaTab() {
+  const tb = document.getElementById('asistencia-tbody');
+  const fechaInput = document.getElementById('asistencia-fecha');
+  const filtroInput = document.getElementById('buscar-asistencia');
+  const msg = document.getElementById('asistencia-msg');
+  
+  if (!tb || !fechaInput) return;
+
+  const fecha = fechaInput.value || hoyISO();
+  if (!fechaInput.value) fechaInput.value = fecha;
+
+  const filtro = (filtroInput?.value || '').trim().toLowerCase();
+
+  // Obtener todos los atletas activos
+  let atletas = all(`SELECT id, identificacion, p_nombre, p_apellido, categoria 
+                     FROM atletas WHERE activo=1 ORDER BY p_apellido, p_nombre`);
+
+  if (filtro) {
+    atletas = atletas.filter(a => {
+      const nom = `${a.p_nombre || ''} ${a.p_apellido || ''}`.toLowerCase();
+      return (a.identificacion || '').toLowerCase().includes(filtro) || nom.includes(filtro);
+    });
+  }
+
+  // Obtener asistencias de esa fecha
+  const asistencias = all(`SELECT atleta_id FROM asistencias WHERE fecha=?`, [fecha]);
+  const presentes = new Set(asistencias.map(a => a.atleta_id));
+
+  tb.innerHTML = atletas.map(a => {
+    const nombre = `${a.p_apellido || ''} ${a.p_nombre || ''}`.trim();
+    const isPresente = presentes.has(a.id);
+    const badgeClase = isPresente ? 'ok' : 'err';
+    const badgeTexto = isPresente ? '✅ Presente' : '❌ Ausente';
+
+    return `<tr>
+      <td>${a.identificacion || ''}</td>
+      <td>${nombre}</td>
+      <td>${a.categoria || '—'}</td>
+      <td class="center">
+        <button class="badge ${badgeClase}" data-id="${a.id}" data-presente="${isPresente}" style="cursor:pointer; border:none; padding:6px 12px; font-weight:bold;">
+          ${badgeTexto}
+        </button>
+      </td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="4" class="muted center">No hay atletas activos.</td></tr>`;
+
+  // Event listener para alternar asistencia
+  tb.querySelectorAll('button[data-id]').forEach(btn => {
+    btn.onclick = async () => {
+      const atletaId = Number(btn.dataset.id);
+      const wasPresente = btn.dataset.presente === 'true';
+
+      try {
+        if (wasPresente) {
+          // Eliminar (o cambiar a ausente)
+          state.db.run(`DELETE FROM asistencias WHERE atleta_id=? AND fecha=?`, [atletaId, fecha]);
+        } else {
+          // Registrar presente
+          state.db.run(`INSERT OR REPLACE INTO asistencias(atleta_id, fecha, estado) VALUES(?, ?, 'presente')`, [atletaId, fecha]);
+        }
+
+        await guardarBDEnIDB();
+        
+        // Actualizar UI instantáneamente
+        const nuevoPresente = !wasPresente;
+        btn.dataset.presente = nuevoPresente;
+        btn.className = `badge ${nuevoPresente ? 'ok' : 'err'}`;
+        btn.textContent = nuevoPresente ? '✅ Presente' : '❌ Ausente';
+
+      } catch (e) {
+        console.error('Error al guardar asistencia:', e);
+        if (msg) showMsg(msg, 'err', 'Error al guardar: ' + e.message);
+      }
+    };
+  });
+}

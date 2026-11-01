@@ -8,7 +8,7 @@ export const state = {
   usuarioActual: null,
   GH_RAW: '',
   tasaBCVFecha: '',
-  SCHEMA_VER: 4,
+  SCHEMA_VER: 5,
   IDB_NAME: 'atletadeudas',
   IDB_STORE: 'kv',
   IDB_KEY: 'sqlite_db'
