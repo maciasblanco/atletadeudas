@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-10-31T20:38:12.588Z",
+  "actualizado": "2026-11-01T00:29:02.026Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -654,6 +654,21 @@
       "banco_origen": "",
       "telefono_origen": "",
       "estado": "pagado"
+    },
+    {
+      "cedula": "33325164",
+      "fecha": "2026-11-01",
+      "fecha_quincena": "2026-10-30",
+      "numero_quincena": 3,
+      "monto": 15,
+      "moneda": "USD",
+      "monto_bs": 0,
+      "tasa": 889.5754,
+      "metodo_pago": "Pago Móvil",
+      "referencia": "1279",
+      "banco_origen": "",
+      "telefono_origen": "",
+      "estado": "pendiente"
     }
   ]
 }
