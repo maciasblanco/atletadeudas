@@ -94,6 +94,27 @@ for (const op of cambios.operaciones) {
   }
 }
 
+// 3. NUEVO: Actualizar automáticamente la versión del Service Worker (sw.js)
+try {
+  const swPath = path.join(RAIZ, 'sw.js');
+  if (fs.existsSync(swPath)) {
+    let swContent = fs.readFileSync(swPath, 'utf8');
+    const match = swContent.match(/const CACHE = 'atletadeudas-v(\d+)';/);
+    if (match) {
+      const versionActual = parseInt(match[1], 10);
+      const nuevaVersion = versionActual + 1;
+      swContent = swContent.replace(
+        `const CACHE = 'atletadeudas-v${versionActual}';`, 
+        `const CACHE = 'atletadeudas-v${nuevaVersion}';`
+      );
+      fs.writeFileSync(swPath, swContent, 'utf8');
+      console.log(`  ✅ Versión del Service Worker actualizada automáticamente a v${nuevaVersion}`);
+    }
+  }
+} catch (e) {
+  console.error('  ⚠️  No se pudo actualizar automáticamente el Service Worker:', e.message);
+}
+
 console.log(`\n🎉 Resultado: ${ok} operación(es) aplicada(s), ${fallos} fallo(s).`);
 console.log(`   Backup en: ${BACKUP}`);
 if (fallos > 0) {
