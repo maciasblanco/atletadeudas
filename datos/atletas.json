@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-11-10T22:41:21.955Z",
+  "actualizado": "2026-11-10T23:01:57.321Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -811,6 +811,42 @@
         "email": "",
         "parentesco": "Madre"
       }
+    },
+    {
+      "cedula": "32751983",
+      "nombre": "Jhoanny",
+      "apellido": "Pérez",
+      "fn": "2008-10-22",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "JUVENIL",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "20522296",
+        "nombre": "Joana",
+        "apellido": "Hernández",
+        "telefono": "04125622769",
+        "email": "perezjhoanny78@gmail.com",
+        "parentesco": "Madre"
+      }
+    },
+    {
+      "cedula": "60133330",
+      "nombre": "Yormary",
+      "apellido": "Blanco",
+      "fn": "2015-04-26",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "SEMILLAS",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "60133330",
+        "nombre": "Magua",
+        "apellido": "Blanco",
+        "telefono": "04142677177",
+        "email": "maigualida100@gmail.com",
+        "parentesco": "Abuelo/a"
+      }
     }
   ],
   "pagos": [
@@ -1238,6 +1274,31 @@
     },
     {
       "cedula": "34229856",
+      "fecha": "2026-11-10",
+      "estado": "presente"
+    },
+    {
+      "cedula": "34693521",
+      "fecha": "2026-11-10",
+      "estado": "presente"
+    },
+    {
+      "cedula": "33444765",
+      "fecha": "2026-11-10",
+      "estado": "presente"
+    },
+    {
+      "cedula": "33742183",
+      "fecha": "2026-11-10",
+      "estado": "presente"
+    },
+    {
+      "cedula": "22910490",
+      "fecha": "2026-11-10",
+      "estado": "presente"
+    },
+    {
+      "cedula": "32751983",
       "fecha": "2026-11-10",
       "estado": "presente"
     }
