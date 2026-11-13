@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-11-13T22:27:54.023Z",
+  "actualizado": "2026-11-13T22:29:25.704Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -1227,6 +1227,21 @@
       "banco_origen": "",
       "telefono_origen": "",
       "estado": "pagado"
+    },
+    {
+      "cedula": "20975876",
+      "fecha": "2026-11-13",
+      "fecha_quincena": "2026-10-30",
+      "numero_quincena": 3,
+      "monto": 50,
+      "moneda": "USD",
+      "monto_bs": 0,
+      "tasa": 893.2173,
+      "metodo_pago": "Efectivo",
+      "referencia": "Ggg",
+      "banco_origen": "",
+      "telefono_origen": "",
+      "estado": "pendiente"
     }
   ],
   "asistencias": [
