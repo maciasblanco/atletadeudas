@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-11-10T23:01:57.321Z",
+  "actualizado": "2026-11-13T22:27:54.023Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -846,6 +846,24 @@
         "telefono": "04142677177",
         "email": "maigualida100@gmail.com",
         "parentesco": "Abuelo/a"
+      }
+    },
+    {
+      "cedula": "20975876",
+      "nombre": "Anabella",
+      "apellido": "Guevara",
+      "fn": "1994-03-30",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "SEMILLAS",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "20975876",
+        "nombre": "Anabel",
+        "apellido": "Colmenares",
+        "telefono": "04122021997",
+        "email": "bellabel.3094@gmail.com",
+        "parentesco": "Madre"
       }
     }
   ],
