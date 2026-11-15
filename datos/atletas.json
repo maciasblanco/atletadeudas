@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-11-15T17:27:05.359Z",
+  "actualizado": "2026-11-15T17:27:58.805Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -1309,8 +1309,23 @@
     {
       "cedula": "37694931",
       "fecha": "2026-11-15",
+      "fecha_quincena": null,
+      "numero_quincena": 2,
+      "monto": 0,
+      "moneda": "USD",
+      "monto_bs": 0,
+      "tasa": 0,
+      "metodo_pago": "Otro",
+      "referencia": "",
+      "banco_origen": "",
+      "telefono_origen": "",
+      "estado": "pagado"
+    },
+    {
+      "cedula": "37694931",
+      "fecha": "2026-11-15",
       "fecha_quincena": "2026-11-15",
-      "numero_quincena": 4,
+      "numero_quincena": 1,
       "monto": 10,
       "moneda": "USD",
       "monto_bs": 0,
@@ -1319,7 +1334,7 @@
       "referencia": "Rrr",
       "banco_origen": "",
       "telefono_origen": "",
-      "estado": "pendiente"
+      "estado": "pagado"
     }
   ],
   "asistencias": [
