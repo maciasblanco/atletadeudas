@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-11-15T17:27:58.805Z",
+  "actualizado": "2026-11-15T18:43:59.505Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -1277,6 +1277,21 @@
       "estado": "pagado"
     },
     {
+      "cedula": "20975876",
+      "fecha": "2026-11-13",
+      "fecha_quincena": null,
+      "numero_quincena": 2,
+      "monto": 0,
+      "moneda": "USD",
+      "monto_bs": 0,
+      "tasa": 0,
+      "metodo_pago": "Otro",
+      "referencia": "",
+      "banco_origen": "",
+      "telefono_origen": "",
+      "estado": "pagado"
+    },
+    {
       "cedula": "11555629",
       "fecha": "2026-11-15",
       "fecha_quincena": null,
@@ -1307,6 +1322,21 @@
       "estado": "pagado"
     },
     {
+      "cedula": "11555629",
+      "fecha": "2026-11-15",
+      "fecha_quincena": null,
+      "numero_quincena": 2,
+      "monto": 0,
+      "moneda": "USD",
+      "monto_bs": 0,
+      "tasa": 0,
+      "metodo_pago": "Otro",
+      "referencia": "",
+      "banco_origen": "",
+      "telefono_origen": "",
+      "estado": "pagado"
+    },
+    {
       "cedula": "37694931",
       "fecha": "2026-11-15",
       "fecha_quincena": null,
@@ -1332,6 +1362,36 @@
       "tasa": 893.2173,
       "metodo_pago": "Efectivo",
       "referencia": "Rrr",
+      "banco_origen": "",
+      "telefono_origen": "",
+      "estado": "pagado"
+    },
+    {
+      "cedula": "37694931",
+      "fecha": "2026-11-15",
+      "fecha_quincena": "2026-11-15",
+      "numero_quincena": 4,
+      "monto": 10,
+      "moneda": "USD",
+      "monto_bs": 0,
+      "tasa": 893.2173,
+      "metodo_pago": "Transferencia",
+      "referencia": "1415",
+      "banco_origen": "",
+      "telefono_origen": "",
+      "estado": "pendiente"
+    },
+    {
+      "cedula": "37694931",
+      "fecha": "2026-11-15",
+      "fecha_quincena": null,
+      "numero_quincena": 2,
+      "monto": 0,
+      "moneda": "USD",
+      "monto_bs": 0,
+      "tasa": 0,
+      "metodo_pago": "Otro",
+      "referencia": "",
       "banco_origen": "",
       "telefono_origen": "",
       "estado": "pagado"
