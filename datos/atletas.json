@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-11-15T18:43:59.505Z",
+  "actualizado": "2026-11-15T18:45:02.285Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -1370,7 +1370,7 @@
       "cedula": "37694931",
       "fecha": "2026-11-15",
       "fecha_quincena": "2026-11-15",
-      "numero_quincena": 4,
+      "numero_quincena": 3,
       "monto": 10,
       "moneda": "USD",
       "monto_bs": 0,
@@ -1379,7 +1379,7 @@
       "referencia": "1415",
       "banco_origen": "",
       "telefono_origen": "",
-      "estado": "pendiente"
+      "estado": "pagado"
     },
     {
       "cedula": "37694931",
