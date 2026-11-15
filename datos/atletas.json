@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-11-15T18:50:37.729Z",
+  "actualizado": "2026-11-15T18:51:06.741Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -1379,7 +1379,7 @@
       "referencia": "4931",
       "banco_origen": "",
       "telefono_origen": "",
-      "estado": "pendiente"
+      "estado": "pagado"
     },
     {
       "cedula": "37694931",
