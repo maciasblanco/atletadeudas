@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-11-13T22:30:40.759Z",
+  "actualizado": "2026-11-15T14:54:07.075Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -1257,6 +1257,21 @@
       "banco_origen": "",
       "telefono_origen": "",
       "estado": "pagado"
+    },
+    {
+      "cedula": "11555629",
+      "fecha": "2026-11-15",
+      "fecha_quincena": "2026-11-15",
+      "numero_quincena": 4,
+      "monto": 10,
+      "moneda": "USD",
+      "monto_bs": 0,
+      "tasa": 893.2173,
+      "metodo_pago": "Efectivo",
+      "referencia": "Noni",
+      "banco_origen": "",
+      "telefono_origen": "",
+      "estado": "pendiente"
     }
   ],
   "asistencias": [
@@ -1348,6 +1363,41 @@
     {
       "cedula": "32751983",
       "fecha": "2026-11-10",
+      "estado": "presente"
+    },
+    {
+      "cedula": "34671276",
+      "fecha": "2026-11-15",
+      "estado": "presente"
+    },
+    {
+      "cedula": "34065424",
+      "fecha": "2026-11-15",
+      "estado": "presente"
+    },
+    {
+      "cedula": "34064965",
+      "fecha": "2026-11-15",
+      "estado": "presente"
+    },
+    {
+      "cedula": "36279460",
+      "fecha": "2026-11-15",
+      "estado": "presente"
+    },
+    {
+      "cedula": "37577646",
+      "fecha": "2026-11-15",
+      "estado": "presente"
+    },
+    {
+      "cedula": "36504106",
+      "fecha": "2026-11-15",
+      "estado": "presente"
+    },
+    {
+      "cedula": "33742183",
+      "fecha": "2026-11-15",
       "estado": "presente"
     }
   ]
