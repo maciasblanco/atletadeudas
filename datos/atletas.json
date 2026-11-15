@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-11-15T14:56:12.111Z",
+  "actualizado": "2026-11-15T17:25:34.150Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -863,6 +863,24 @@
         "apellido": "Colmenares",
         "telefono": "04122021997",
         "email": "bellabel.3094@gmail.com",
+        "parentesco": "Madre"
+      }
+    },
+    {
+      "cedula": "37694931",
+      "nombre": "Miranda",
+      "apellido": "Guitierrez",
+      "fn": "3016-12-01",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "SEMILLAS",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "16264877",
+        "nombre": "Thais",
+        "apellido": "Torres",
+        "telefono": "04125896635",
+        "email": "thais@gmail.con",
         "parentesco": "Madre"
       }
     }
