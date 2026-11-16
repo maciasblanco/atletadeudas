@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-11-15T18:51:06.741Z",
+  "actualizado": "2026-11-16T16:22:10.555Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -881,6 +881,24 @@
         "apellido": "Torres",
         "telefono": "04125896635",
         "email": "thais@gmail.con",
+        "parentesco": "Madre"
+      }
+    },
+    {
+      "cedula": "37144559",
+      "nombre": "Josueverlis",
+      "apellido": "Gómez",
+      "fn": "2014-06-16",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "MINI",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "15344587",
+        "nombre": "Evelice",
+        "apellido": "Velasquez",
+        "telefono": "04126021919",
+        "email": "",
         "parentesco": "Madre"
       }
     }
