@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-11-16T16:25:05.559Z",
+  "actualizado": "2026-11-16T21:18:16.801Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -901,6 +901,24 @@
         "email": "",
         "parentesco": "Madre"
       }
+    },
+    {
+      "cedula": "36379901",
+      "nombre": "Estefania",
+      "apellido": "García",
+      "fn": "2026-11-01",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "MINI",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "25252548",
+        "nombre": "Kimberlis",
+        "apellido": "Oropeza",
+        "telefono": "04242547673",
+        "email": "",
+        "parentesco": "Madre"
+      }
     }
   ],
   "pagos": [
@@ -1455,6 +1473,21 @@
       "tasa": 893.2173,
       "metodo_pago": "Efectivo",
       "referencia": "Gggfff",
+      "banco_origen": "",
+      "telefono_origen": "",
+      "estado": "pagado"
+    },
+    {
+      "cedula": "37144559",
+      "fecha": "2026-11-16",
+      "fecha_quincena": null,
+      "numero_quincena": 2,
+      "monto": 0,
+      "moneda": "USD",
+      "monto_bs": 0,
+      "tasa": 0,
+      "metodo_pago": "Otro",
+      "referencia": "",
       "banco_origen": "",
       "telefono_origen": "",
       "estado": "pagado"
