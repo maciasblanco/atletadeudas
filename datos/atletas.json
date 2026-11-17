@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-11-16T21:18:16.801Z",
+  "actualizado": "2026-11-17T22:48:14.291Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -916,6 +916,24 @@
         "nombre": "Kimberlis",
         "apellido": "Oropeza",
         "telefono": "04242547673",
+        "email": "",
+        "parentesco": "Madre"
+      }
+    },
+    {
+      "cedula": "36499761",
+      "nombre": "Milagro",
+      "apellido": "Espinoza",
+      "fn": "2013-02-02",
+      "deuda": 0,
+      "activo": 1,
+      "categoria": "MINI",
+      "escuela": "Club Aves Voladoras",
+      "representante": {
+        "cedula": "18601766",
+        "nombre": "Iris",
+        "apellido": "López",
+        "telefono": "04129880692",
         "email": "",
         "parentesco": "Madre"
       }
