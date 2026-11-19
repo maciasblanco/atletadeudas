@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "actualizado": "2026-11-19T00:27:56.985Z",
+  "actualizado": "2026-11-19T00:30:02.468Z",
   "atletas": [
     {
       "cedula": "34671276",
@@ -1524,6 +1524,21 @@
       "banco_origen": "",
       "telefono_origen": "",
       "estado": "pagado"
+    },
+    {
+      "cedula": "11555629",
+      "fecha": "2026-11-19",
+      "fecha_quincena": "2026-11-15",
+      "numero_quincena": 4,
+      "monto": 5,
+      "moneda": "USD",
+      "monto_bs": 0,
+      "tasa": 893.2173,
+      "metodo_pago": "Efectivo",
+      "referencia": "Bb",
+      "banco_origen": "",
+      "telefono_origen": "",
+      "estado": "pendiente"
     },
     {
       "cedula": "11555629",
